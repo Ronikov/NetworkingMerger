@@ -1,0 +1,2 @@
+C:\DigiPen\y2t2\comp net\assignment\ass1\Client_Project\x64\Release\Client_Project.exe
+C:\DigiPen\y2t2\comp net\assignment\SandBox\Client_Project\x64\Release\Client_Project.exe

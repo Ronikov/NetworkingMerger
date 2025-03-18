@@ -1,0 +1,2 @@
+C:\DigiPen\y2t2\comp net\assignment\ass1\Server_Project\x64\Release\Server_Project.exe
+C:\Users\brand\Documents\GitHub\NetworkingMerger\Server_Project\x64\Release\Server_Project.exe
