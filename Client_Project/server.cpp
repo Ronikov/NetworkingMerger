@@ -228,9 +228,6 @@ TaskQueue<TItem, TAction, TOnDisconnect>::~TaskQueue()
  void disconnect(SOCKET& tcpSocket);
  void handleListFiles(SOCKET clientSocket);
  void handleFileDownload(SOCKET clientSocket, const char* buffer);
- void sendFileToClient(int udpSocket, uint32_t sessionID,
-     std::string filename, uint16_t clientPortNum, std::string clientIP, uint32_t sessionIDNetwork,
-     uint32_t fileSizeNet, std::string filePath);
 
  SOCKET udpSocket;
 
@@ -241,6 +238,7 @@ TaskQueue<TItem, TAction, TOnDisconnect>::~TaskQueue()
  using FileList = std::vector<std::pair<std::string, uint32_t>>;
  using SessionMap = std::unordered_map<uint32_t, uint32_t>;
  using ClientMap = std::map<SOCKET, std::pair<std::string, uint16_t>>;
+
  
 enum class CMDID : uint8_t {
     UNKNOWN         = 0x00,
@@ -252,6 +250,10 @@ enum class CMDID : uint8_t {
     CMD_TEST        = 0x20,
     DOWNLOAD_ERROR  = 0x30
 };
+ 
+void sendFileToClient(int udpSocket, uint32_t sessionID,
+    std::string filename, uint16_t clientPortNum, std::string clientIP, uint32_t sessionIDNetwork,
+    uint32_t fileSizeNet, std::string filePath);
 
 ClientMap       connected_Clients;
 std::string     path;
@@ -276,20 +278,30 @@ SessionMap      sessionSeqNum;
      std::string TCPportString = TCPportNumber;
      uint16_t udpPort = static_cast<uint16_t>(std::stoi(portNumber_UDP));
  
+     
+     // This object holds the information about the version of Winsock that we
+     // are using, which is not necessarily the version that we requested.
      WSADATA wsaData{};
-
+ 
+     // Initialize Winsock. You must call WSACleanup when you are finished.
+     // As this function uses a reference counter, for each call to WSAStartup,
+     // you must call WSACleanup or suffer memory issues.
      int errorCode = WSAStartup(MAKEWORD(2, 2), &wsaData);
      if (errorCode != NO_ERROR)
      {
          std::cerr << "WSAStartup() failed." << std::endl;
          return errorCode;
      }
-
+ 
+     // Object hints indicates which protocols to use to fill in the info.
      addrinfo hints{};
      SecureZeroMemory(&hints, sizeof(hints));
-     hints.ai_family = AF_INET;
-     hints.ai_socktype = SOCK_STREAM;
-     hints.ai_protocol = IPPROTO_TCP;
+     hints.ai_family = AF_INET;			// IPv4
+     // For UDP use SOCK_DGRAM instead of SOCK_STREAM.
+     hints.ai_socktype = SOCK_STREAM;	// Reliable delivery
+     // Could be 0 for autodetect, but reliable delivery over IPv4 is always TCP.
+     hints.ai_protocol = IPPROTO_TCP;	// TCP
+     // Create a passive socket that is suitable for bind() and listen().
      hints.ai_flags = AI_PASSIVE;
  
      char host[BUFFER_SIZE];
@@ -304,6 +316,8 @@ SessionMap      sessionSeqNum;
          return errorCode;
      }
  
+     /* PRINT SERVER IP ADDRESS / TCP PORT NUMBER / UDP PORT NUMBER */
+     
      struct sockaddr_in* serverAddress = reinterpret_cast<struct sockaddr_in*> (info->ai_addr);
      inet_ntop(AF_INET, &(serverAddress->sin_addr), serverIPAddress, INET_ADDRSTRLEN);
      getnameinfo(info->ai_addr, static_cast <socklen_t> (info->ai_addrlen), serverIPAddress, sizeof(serverIPAddress), nullptr, 0, NI_NUMERICHOST);
@@ -346,6 +360,7 @@ SessionMap      sessionSeqNum;
          return 2;
      }
 
+     //UDP Protocol
      udpSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
      if (udpSocket == INVALID_SOCKET) {
          std::cerr << "Failed to create UDP socket." << std::endl;
@@ -353,8 +368,9 @@ SessionMap      sessionSeqNum;
          return 1;
      }
 
+     // Bind the UDP socket to the specified port
      udpAddress.sin_family = AF_INET;
-     udpAddress.sin_addr.s_addr = INADDR_ANY;
+     udpAddress.sin_addr.s_addr = INADDR_ANY; // Accept data from any address
      udpAddress.sin_port = htons(udpPort);
 
      if (bind(udpSocket, (sockaddr*)&udpAddress, sizeof(udpAddress)) == SOCKET_ERROR) {
@@ -403,6 +419,12 @@ SessionMap      sessionSeqNum;
              connected_Clients[clientSocket] = { clientIP, clientPort };
          }
      }
+ 
+     // -------------------------------------------------------------------------
+     // Clean-up after Winsock.
+     //
+     // WSACleanup()
+     // -------------------------------------------------------------------------
  
      WSACleanup();
  }

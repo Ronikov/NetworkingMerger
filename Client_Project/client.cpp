@@ -63,7 +63,7 @@ enum CMDID {
 
 void recv_TCP(int clientSocket);
 void recv_UDP(int clientUdpSocket, std::string filename, uint32_t expectedSessionID, sockaddr_in expectedServerAddr);
-sockaddr_in udpAddr;
+sockaddr_in udpAddress;
 sockaddr_in serverUdpAddr;
 std::string clientPath;
 
@@ -149,11 +149,11 @@ int main(int argc, char** argv)
     }
 
     // Bind the UDP socket to the specified client port
-    udpAddr.sin_family = AF_INET;
-    udpAddr.sin_addr.s_addr = INADDR_ANY; // Accept data from any address
-    udpAddr.sin_port = htons(clientUdpPortNum);
+    udpAddress.sin_family = AF_INET;
+    udpAddress.sin_addr.s_addr = INADDR_ANY; // Accept data from any address
+    udpAddress.sin_port = htons(clientUdpPortNum);
 
-    if (bind(udpSocket, (sockaddr*)&udpAddr, sizeof(udpAddr)) == SOCKET_ERROR) {
+    if (bind(udpSocket, (sockaddr*)&udpAddress, sizeof(udpAddress)) == SOCKET_ERROR) {
         std::cerr << "Failed to bind UDP socket." << std::endl;
         closesocket(udpSocket);
         WSACleanup();
