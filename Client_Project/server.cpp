@@ -245,16 +245,16 @@ TaskQueue<TItem, TAction, TOnDisconnect>::~TaskQueue()
  using SessionMap = std::unordered_map<uint32_t, uint32_t>;
  using ClientMap = std::map<SOCKET, std::pair<std::string, uint16_t>>;
  
-enum class CMDID : uint8_t {
-    UNKNOWN         = 0x00,
-    REQ_QUIT        = 0x01,
-    REQ_DOWNLOAD    = 0x02,
-    RSP_DOWNLOAD    = 0x03,
-    REQ_LISTFILES   = 0x04,
-    RSP_LISTFILES   = 0x05,
-    CMD_TEST        = 0x20,
-    DOWNLOAD_ERROR  = 0x30
-};
+ enum CMDID {
+     UNKNOWN = (unsigned char)0x0,
+     REQ_QUIT = (unsigned char)0x1,
+     REQ_DOWNLOAD = (unsigned char)0x2,
+     RSP_DOWNLOAD = (unsigned char)0x3,
+     REQ_LISTFILES = (unsigned char)0x4,
+     RSP_LISTFILES = (unsigned char)0x5,
+     CMD_TEST = (unsigned char)0x20,
+     DOWNLOAD_ERROR = (unsigned char)0x30
+ };
 
 ClientMap       connected_Clients;
 std::string     path;
@@ -452,20 +452,19 @@ SessionMap      sessionSeqNum;
              std::cerr << (bytesReceived == 0 ? "Graceful shutdown." : "recv() failed.") << std::endl;
              break;
          }
-         buffer[bytesReceived] = '\0';
-
-         int cmdID = static_cast<int>(buffer[0]);
+         buffer[bytesReceived] = { 0 };
+         char cmdID = buffer[0];
 
          switch (cmdID)
          {
-         case 4:
+         case REQ_LISTFILES:
              handleListFiles(clientSocket);
              break;
-         case 2:
+         case REQ_DOWNLOAD:
              handleFileDownload(clientSocket, buffer + 1);
              break;
          default:
-             std::cerr << "Unknown command received: " << cmdID << std::endl;
+             std::cerr << "Invalid command received: " << cmdID << std::endl;
              break;
          }
      }
@@ -588,7 +587,7 @@ void sendFileToClient(int udpSock, uint32_t sessionIdentifier,
         sessionSeqNum[sessionIdentifier] = 1;
     }
 
-    uint32_t sequenceNumber = sessionSeqNum[sessionIdentifier];
+    uint32_t packetNumber = sessionSeqNum[sessionIdentifier];
 
     sockaddr_in clientAddress;
     clientAddress.sin_family = AF_INET;
@@ -621,7 +620,7 @@ void sendFileToClient(int udpSock, uint32_t sessionIdentifier,
         memcpy(dataPacketBuffer + bufferOffset, &fileChunkLength, sizeof(fileChunkLength));
         bufferOffset += sizeof(fileChunkLength);
 
-        uint32_t sequenceNumNet = htonl(sequenceNumber);
+        uint32_t sequenceNumNet = htonl(packetNumber);
         memcpy(dataPacketBuffer + bufferOffset, &sequenceNumNet, sizeof(sequenceNumNet));
         bufferOffset += sizeof(sequenceNumNet);
 
@@ -658,20 +657,20 @@ void sendFileToClient(int udpSock, uint32_t sessionIdentifier,
 
                 acknowledgementNum = ntohl(*(uint32_t*)(acknowledgementBuffer));
 
-                if (acknowledgementNum == sequenceNumber)
+                if (acknowledgementNum == packetNumber)
                 {
                     acknowledgementReceived = true;
-                    sessionSeqNum[sessionIdentifier] = ++sequenceNumber;
+                    sessionSeqNum[sessionIdentifier] = ++packetNumber;
                 }
                 else
                 {
-                    std::cout << "[UDP] Incorrect ACK received (expected " << sequenceNumber << ", got " << acknowledgementNum << "). Resending...\n";
+                    std::cout << "[UDP] Incorrect ACK received (expected " << packetNumber << ", got " << acknowledgementNum << "). Resending...\n";
                 }
             }
             else
             {
                 std::cout << "Select result: " << selectResult << '\n';
-                std::cout << "[UDP] ACK Timeout! Resending packet with SeqNum " << sequenceNumber << "\n";
+                std::cout << "[UDP] ACK Timeout! Resending packet with packet number: " << packetNumber << "\n";
             }
         }
 

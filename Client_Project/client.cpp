@@ -193,7 +193,7 @@ int main(int argc, char** argv)
             case 'q':
                 message = CMDID::REQ_QUIT;
                 send(clientSocket, &message, sizeof(message), 0);
-                std::cout << "disconnection...\n";
+                std::cout << "disconnection..." << std::endl;
                 break;
             case 'l':
                 message = CMDID::REQ_LISTFILES;
@@ -266,9 +266,9 @@ void recv_UDP(int UDP_SOCKET, std::string fileName, uint32_t expectedSessionID
         return;
     }
     
-    uint32_t expectedSeqNum = 1;
+    uint32_t expectedpacketNumber = 1;
     bool completedTransfer = false;
-    std::unordered_set<uint32_t> receivedSeqNums; // Track received packets
+    std::unordered_set<uint32_t> recv_packedNumbers; // Track received packets
     uint32_t totalDataRecv = 0;
 
     while (!completedTransfer)
@@ -317,46 +317,45 @@ void recv_UDP(int UDP_SOCKET, std::string fileName, uint32_t expectedSessionID
             uint32_t fileChunkSize = ntohl(*(uint32_t*)(bufferUdpRecv + offset));
             offset += 4;
 
-            //extract seqNum
-            uint32_t seqNum = ntohl(*(uint32_t*)(bufferUdpRecv + offset));
+            //extract packetNumber
+            uint32_t packetNumber = ntohl(*(uint32_t*)(bufferUdpRecv + offset));
             offset += 4;
 
-            if (seqNum == expectedSeqNum && receivedSeqNums.find(seqNum) == receivedSeqNums.end())
+            if (packetNumber == expectedpacketNumber && recv_packedNumbers.find(packetNumber) == recv_packedNumbers.end())
             {   
                 outFile.seekp(fileOffset);
                 outFile.write(bufferUdpRecv + offset, fileChunkSize);
-                receivedSeqNums.insert(seqNum);
+                recv_packedNumbers.insert(packetNumber);
 
-                expectedSeqNum++;
+                expectedpacketNumber++;
                 totalDataRecv += fileChunkSize;
-                std::cout << "Data Chunk Sent\n";
+                std::cout << "Data Chunk Received, Packet Number: " << packetNumber << std::endl;
             }
-            else if (seqNum < expectedSeqNum)
+            else if (packetNumber < expectedpacketNumber)
             {
-                std::cout << "[UDP] Duplicate packet received! SeqNum: " << seqNum << std::endl;
+                std::cout << "[UDP] Duplicate packet received! Packet Number: " << packetNumber << std::endl;
             }
-            else if (seqNum > expectedSeqNum)
+            else if (packetNumber > expectedpacketNumber)
             {
-                std::cout << "[UDP] Future packet received! Expected: " << expectedSeqNum
-                    << ", Got: " << seqNum << " (Packet lost?)" << std::endl;
+                std::cout << "[UDP] Possible packet lost! Expected: " << expectedpacketNumber
+                    << ", Received: " << packetNumber << std::endl;
 
-                //Ask the server to resend missing packet
-                uint32_t ackNumNet = htonl(expectedSeqNum - 1);
+                uint32_t ackNumNet = htonl(expectedpacketNumber - 1);
                 memcpy(bufferACKsend, &ackNumNet, sizeof(ackNumNet));
                 sendto(UDP_SOCKET, bufferACKsend, sizeof(bufferACKsend), 0,
                     (sockaddr*)&serverAddrRecv, sizeof(serverAddrRecv));
 
-                std::cout << "[UDP] Requesting Resend for SeqNum: " << expectedSeqNum << std::endl;
+                std::cout << "[UDP] Resending packet: " << expectedpacketNumber << std::endl;
                 continue;
             }
             else
             {
                 std::cout << "[UDP] Out-of-order packet received! Expected: "
-                    << expectedSeqNum << ", Got: " << seqNum << std::endl;
+                    << expectedpacketNumber << ", Received: " << packetNumber << std::endl;
             }
 
             //send ack packet
-            uint32_t acknum = seqNum;
+            uint32_t acknum = packetNumber;
             uint32_t ackNumNet = htonl(acknum);
             memcpy(bufferACKsend, &ackNumNet, sizeof(ackNumNet));
 
@@ -365,7 +364,7 @@ void recv_UDP(int UDP_SOCKET, std::string fileName, uint32_t expectedSessionID
 
             sendto(UDP_SOCKET, bufferACKsend, sizeof(bufferACKsend), 0,
                 (sockaddr*)&serverAddrRecv, sizeof(serverAddrRecv));
-            std::cout << "ACK Sent for SeqNum: " << seqNum << std::endl;
+            std::cout << "ACK Sent for packet number: " << packetNumber << std::endl;
 
             if (totalDataRecv >= fileSize)
             {
@@ -377,7 +376,7 @@ void recv_UDP(int UDP_SOCKET, std::string fileName, uint32_t expectedSessionID
         }
         else
         {
-            std::cout << "Not Receiving Bytes\n";
+            std::cout << "No bytes received." << std::endl;
         }
 
     }
@@ -433,9 +432,9 @@ void handleListFilesResponse(const char* recvBuffer, int bufferSize)
     uint32_t listSize = ntohl(*(uint32_t*)(recvBuffer + readOffset));
     readOffset += sizeof(uint32_t);
 
-    std::cout << "Number of Files: " << totalFiles << "\n"
-        << "Length of File List: " << listSize << "\n"
-        << "===============================\n";
+    std::cout << "Number of Files: " << totalFiles << std::endl
+        << "Length of File List: " << listSize << std::endl
+        << "===============================" << std::endl;
 
     while (readOffset < bufferSize)
     {
@@ -445,7 +444,7 @@ void handleListFilesResponse(const char* recvBuffer, int bufferSize)
         std::string currentFileName(recvBuffer + readOffset, currentFileNameLength);
         readOffset += currentFileNameLength;
 
-        std::cout << currentFileName << "\n";
+        std::cout << currentFileName << std::endl;
     }
 }
 
@@ -458,11 +457,11 @@ void recv_TCP(int socketDescriptor)
 
         if (bytesRead <= 0)
         {
-            std::cout << "Server closed the connection.\n";
+            std::cout << "Server terminated the connection." << std::endl;
             break;
         }
-
-        recvBuffer[bytesRead] = '\0';
+        if (bytesRead < MAX_STR_LEN)
+            recvBuffer[bytesRead - 1] = '\0';
         char commandID = recvBuffer[0];
 
         switch (commandID)
@@ -474,7 +473,7 @@ void recv_TCP(int socketDescriptor)
             handleListFilesResponse(recvBuffer, bytesRead);
             break;
         default:
-            std::cerr << "Unknown command received: " << static_cast<int>(commandID) << "\n";
+            std::cerr << "Invalid command received." << std::endl;
             break;
         }
     }
