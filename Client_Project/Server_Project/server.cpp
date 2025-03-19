@@ -230,7 +230,7 @@ TaskQueue<TItem, TAction, TOnDisconnect>::~TaskQueue()
 
 #define MAX_STR_LEN         1000
 #define chunkSize            1024
-#define TIMEOUT_MS 2000
+#define TIMEOUT_MS          2000
  
 enum class CMDID : uint8_t {
     UNKNOWN         = 0x00,
@@ -451,31 +451,15 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
  
  bool execute(SOCKET clientSocket)
  {
- 
-     // -------------------------------------------------------------------------
-     // Receive some text and send it back.
-     //
-     // recv()
-     // send()
-     // -------------------------------------------------------------------------
- 
      constexpr size_t BUFFER_SIZE = 1000;
      char buffer[BUFFER_SIZE];
      bool stay = true;
 
-     //char udpRecvBuffer[1024];
      sockaddr_in clientAddr;
      int clientAddrSize = sizeof(clientAddr);
 
-     //UDP
-     //int udpBytesReceived = recvfrom(
-     //    udpSocket, udpRecvBuffer, sizeof(udpRecvBuffer) - 1, 0,
-     //    (sockaddr*)&clientAddr, &clientAddrSize
-     //);
-
      while (true)
      {	
-         //TCP
          const int bytesReceived = recv(
              clientSocket,
              buffer,
@@ -502,10 +486,8 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
             bufferSend[offset] = static_cast<char>(CMDID::RSP_LISTFILES);
             offset += 1;
 
-            //get files into vector
             fileList = GetFiles(path);
              
-            //get number of files
             size_t numFiles = fileList.size();
             uint16_t numFileNet = htons(static_cast<uint16_t>(numFiles));
             memcpy(bufferSend + offset, &numFileNet, sizeof(numFileNet));
@@ -534,30 +516,24 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
          }
          else if (cmdID == 2)
          {  
-             //receive tcp /d directive
              char bufferSend[BUFFER_SIZE] = {};
 
              char clientIP[INET_ADDRSTRLEN];
              int offset = 1;
 
-             //extract client IP address
              in_addr clientIPAddr;
              memcpy(&clientIPAddr, buffer + offset, sizeof(clientIPAddr));
              inet_ntop(AF_INET, &clientIPAddr, clientIP, INET_ADDRSTRLEN);
              offset += sizeof(clientIPAddr);
 
-             //extract client Port Num address
              uint16_t clientPortNum = ntohs(*(uint16_t*)(buffer + offset));
              offset += 2;
 
-             //extract filename length
              uint32_t filenameLen = ntohl(*(uint32_t*)(buffer + offset));
-             offset += 4; //shift offset to text msg
+             offset += 4;
 
-             //extract filename
              std::string filename(buffer + offset, filenameLen);
 
-             //FILEPATH IS WHERE THE USER INPUT AT THE START LOL
              std::string serverPath = path;
              std::string filePath = serverPath + "/" + filename;
 
@@ -567,21 +543,17 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
                  send(clientSocket, &errorMsg, 1, 0);
              }
              else {
-                 //send RSP_DOWNLOAD tcp msg to client
                  char ID = static_cast<char>(CMDID::RSP_DOWNLOAD);
                  int offset = 0;
                  bufferSend[offset] = ID;
                  offset += 1;
 
                  uint32_t fileSize = static_cast<uint32_t>(std::filesystem::file_size(filePath));
-                 //tcp send
-                 //set server IP address
                  in_addr serverIP;
                  inet_pton(AF_INET, serverIPAddr, &serverIP);
                  memcpy(bufferSend + offset, &serverIP, sizeof(serverIP));
                  offset += sizeof(serverIP);
 
-                 //set server port number
                  uint16_t udpPortNum = htons(static_cast<uint16_t>(std::stoi(UDPportNumber)));
                  memcpy(bufferSend + offset, &udpPortNum, sizeof(udpPortNum));
                  offset += sizeof(udpPortNum);
@@ -623,8 +595,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
     std::string filename, uint16_t clientPortNum, std::string clientIP, uint32_t sessionIDNetwork,
     uint32_t fileSizeNet, std::string filePath)
 {
-    //udp send
-    // use sendto() to send file to client over 
     std::ifstream fileSent(filePath, std::ios::binary);
     if (!fileSent) {
         std::cerr << "Error: Unable to open file!" << std::endl;
@@ -635,7 +605,7 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
     uint32_t fileOffset = 0;
 
     if (sessionSeqNum.find(sessionID) == sessionSeqNum.end()) {
-        sessionSeqNum[sessionID] = 1; // start at 1 for new session
+        sessionSeqNum[sessionID] = 1;
     }
 
     uint32_t seqNum = sessionSeqNum[sessionID];
@@ -645,64 +615,53 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
     clientAddr.sin_port = htons(clientPortNum);
     inet_pton(AF_INET, clientIP.c_str(), &clientAddr.sin_addr);
 
-    //send chunks of file data to client
     while (true)
     {
-        //send UDP datagram to client
         int offset = 0;
 
-        // File Data (Copy actual file content into buffer)
         fileSent.read(bufferDataPacket + 20, 1024);
-        bytesRead = fileSent.gcount();  // Get the actual number of bytes read
+        bytesRead = fileSent.gcount();
 
         if (bytesRead == 0) {
-            break;  // Stop sending when no more data is available
+            break;
         }
 
-        //sessionID
         uint32_t sessionIDNet = htonl(sessionID);
         memcpy(bufferDataPacket + offset, &sessionIDNet, sizeof(sessionIDNet));
         offset += sizeof(sessionIDNet);
 
-        //fileSize
         memcpy(bufferDataPacket + offset, &fileSizeNet, sizeof(fileSizeNet));
         offset += sizeof(fileSizeNet);
 
-        //file offset
-        uint32_t fileOffsetNet = htonl(fileOffset); // Convert to network byte order
+        uint32_t fileOffsetNet = htonl(fileOffset);
         memcpy(bufferDataPacket + offset, &fileOffsetNet, sizeof(fileOffsetNet));
         offset += sizeof(fileOffsetNet);
 
-        //File Data size
         uint32_t fileDataLength = htonl(bytesRead);
         memcpy(bufferDataPacket + offset, &fileDataLength, sizeof(fileDataLength));
         offset += sizeof(fileDataLength);
 
-        //seqNUm
         uint32_t seqNumNet = htonl(seqNum);
         memcpy(bufferDataPacket + offset, &seqNumNet, sizeof(seqNumNet));
         offset += sizeof(seqNumNet);
 
-        //file data alr in bufferDataPacket
         offset += bytesRead;
 
         bool ackReceived = false;
         uint32_t ackNum;
 
-        //resend if theres an error
         while (!ackReceived)
         {
             int sent = sendto(udpSocket, bufferDataPacket, offset, 0, (sockaddr*)&clientAddr
                 , sizeof(clientAddr));
             std::cout << "Bytes Sent: " << sent << '\n';
 
-            // Set timeout for ACK reception
             fd_set readFds;
             FD_ZERO(&readFds);
             FD_SET(udpSocket, &readFds);
 
             timeval timeout;
-            timeout.tv_sec = 2;  // 2 seconds timeout
+            timeout.tv_sec = 2;
             timeout.tv_usec = 0;
 
             sockaddr_in clientAddrRecv;
@@ -720,7 +679,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
 
                 ackNum = ntohl(*(uint32_t*)(ackBuffer));
 
-                //dont resend, no error, go back to start of while(true)
                 if (ackNum == seqNum)
                 {
                     ackReceived = true;
