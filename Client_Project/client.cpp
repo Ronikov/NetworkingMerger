@@ -188,18 +188,22 @@ int main(int argc, char** argv)
         if (slash == '/')
         {
             char message;
+            bool print = true;
             switch (cmd)
             {
             case 'q':
                 message = CMDID::REQ_QUIT;
                 send(clientSocket, &message, sizeof(message), 0);
                 std::cout << "disconnection..." << std::endl;
+                print = false;
                 break;
             case 'l':
                 message = CMDID::REQ_LISTFILES;
                 send(clientSocket, &message, sizeof(message), 0);
+                print = false;
                 break;
             case 'd':
+                print = false;
                 std::vector<char> buffer;
                 buffer.resize(MAX_STR_LEN); 
 
@@ -237,6 +241,13 @@ int main(int argc, char** argv)
                 send(clientSocket, buffer.data(), offset, 0);
                 break;
             }
+            if (print)
+                std::cerr << "Invalid command received." << std::endl;
+
+        }
+        else
+        {
+            std::cerr << "Invalid command received." << std::endl;
         }
     }
     errorCode = shutdown(clientSocket, SD_SEND);
@@ -283,7 +294,7 @@ void recv_UDP(int UDP_SOCKET, std::string fileName, uint32_t expectedSessionID
 
         //UDP RECV
         if (recvUDPfromServer == -1) {
-            std::cerr << "[UDP] Error receiving data! Errno: " << WSAGetLastError() << std::endl;
+            std::cerr << "[UDP] Error receiving data! Error number: " << WSAGetLastError() << std::endl;
         }
         else if (recvUDPfromServer > 0)
         {   
