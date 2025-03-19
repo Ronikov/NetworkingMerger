@@ -268,6 +268,8 @@ int main(int argc, char** argv)
     WSACleanup();
 }
 
+
+
 void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID
     , sockaddr_in expectedServerAddr)
 {   
@@ -404,92 +406,97 @@ void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID
 }
 
 
+
+
+void handleDownloadResponse(const char* bufferRecv, int bytesReceived)
+{
+    int offset = 1;
+    in_addr serverAddr;
+    memcpy(&serverAddr, bufferRecv + offset, sizeof(serverAddr));
+    char serverIP[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &serverAddr, serverIP, INET_ADDRSTRLEN);
+    offset += sizeof(serverAddr);
+
+    uint16_t serverPortNum = ntohs(*(uint16_t*)(bufferRecv + offset));
+    offset += sizeof(uint16_t);
+
+    uint32_t sessionId = ntohl(*(uint32_t*)(bufferRecv + offset));
+    offset += sizeof(uint32_t);
+
+    uint32_t fileSize = ntohl(*(uint32_t*)(bufferRecv + offset));
+    offset += sizeof(uint32_t);
+
+    uint32_t filenameLen = ntohl(*(uint32_t*)(bufferRecv + offset));
+    offset += sizeof(uint32_t);
+
+    std::string filename(bufferRecv + offset, filenameLen);
+
+    std::cout << "Server IP Address: " << serverIP << "\n"
+        << "Server UDP Port Number: " << serverPortNum << "\n"
+        << "Session ID: " << sessionId << "\n"
+        << "File Size: " << fileSize << "\n";
+
+    sockaddr_in expectedServerAddr{};
+    expectedServerAddr.sin_family = AF_INET;
+    expectedServerAddr.sin_port = htons(serverPortNum);
+    inet_pton(AF_INET, serverIP, &expectedServerAddr.sin_addr);
+
+    std::thread udpRecvThread(recv_UDP, udpSocket, filename, sessionId, expectedServerAddr);
+    udpRecvThread.detach();
+}
+
+void handleListFilesResponse(const char* bufferRecv, int bytesReceived)
+{
+    int offset = 1;
+    uint16_t numFiles = ntohs(*(uint16_t*)(bufferRecv + offset));
+    offset += sizeof(uint16_t);
+
+    uint32_t lenFileList = ntohl(*(uint32_t*)(bufferRecv + offset));
+    offset += sizeof(uint32_t);
+
+    std::cout << "Number of Files: " << numFiles << "\n"
+        << "Length of File List: " << lenFileList << "\n"
+        << "===============================\n";
+
+    while (offset < bytesReceived)
+    {
+        uint32_t fileNameLen = ntohl(*(uint32_t*)(bufferRecv + offset));
+        offset += sizeof(uint32_t);
+
+        std::string fileName(bufferRecv + offset, fileNameLen);
+        offset += fileNameLen;
+
+        std::cout << fileName << "\n";
+    }
+}
+
 void recv_TCP(int clientSocket)
 {
     while (true)
     {
         char bufferRecv[MAX_STR_LEN] = {};
-        int receiveFromServer = recv(clientSocket, bufferRecv, MAX_STR_LEN, 0);
+        int bytesReceived = recv(clientSocket, bufferRecv, MAX_STR_LEN, 0);
 
-        if (receiveFromServer <= 0)
+        if (bytesReceived <= 0)
         {
             std::cout << "Server closed the connection.\n";
             break;
         }
-        else
+
+        bufferRecv[bytesReceived] = '\0';
+        char cmdID = bufferRecv[0];
+
+        switch (cmdID)
         {
-            bufferRecv[receiveFromServer] = '\0';
-            char cmdID = bufferRecv[0];
-            if (cmdID == RSP_DOWNLOAD)
-            {
-                char serverIP[INET_ADDRSTRLEN];
-                int offset = 1;
-
-                //extract server IP address
-                in_addr serverAddr;
-                memcpy(&serverAddr, bufferRecv + offset, sizeof(serverAddr));
-                inet_ntop(AF_INET, &serverAddr, serverIP, INET_ADDRSTRLEN);
-                offset += sizeof(serverAddr);
-
-                //extract server Port Num address
-                uint16_t serverPortNum = ntohs(*(uint16_t*)(bufferRecv + offset));
-                offset += 2;
-
-                //extract session ID
-                uint32_t sessionId = ntohl(*(uint32_t*)(bufferRecv + offset));
-                offset += 4;
-
-                //extract file len
-                uint32_t fileSize = ntohl(*(uint32_t*)(bufferRecv + offset));
-                offset += 4;
-
-                uint32_t filenameLen = ntohl(*(uint32_t*)(bufferRecv + offset));
-                offset += 4;
-
-                std::string filename(bufferRecv + offset, filenameLen);
-                offset += filenameLen;
-
-                std::cout << "Server IP Address: " << serverIP << std::endl;
-                std::cout << "Server UDP Port Number: " << serverPortNum << std::endl;
-                std::cout << "Session ID: " << sessionId << std::endl;
-                std::cout << "File Size: " << fileSize << std::endl;
-
-                sockaddr_in expectedServerAddr;
-                expectedServerAddr.sin_family = AF_INET;
-                expectedServerAddr.sin_port = htons(serverPortNum);
-                inet_pton(AF_INET, serverIP, &expectedServerAddr.sin_addr);
-
-                std::thread UdprecvThread(recv_UDP, udpSocket, filename, sessionId, expectedServerAddr);
-                UdprecvThread.detach();
-            }
-            else if (cmdID == RSP_LISTFILES)
-            {
-                //extract RSP_LISTFILES datagram
-                int offset = 1;
-
-                //extract number of files
-                uint16_t numFiles = ntohs(*(uint16_t*)(bufferRecv + offset));
-                offset += 2;
-
-                //extract length of file list
-                uint32_t lenFileList = ntohl(*(uint32_t*)(bufferRecv + offset));
-                offset += 4;
-
-                std::cout << "Number of Files: " << numFiles << std::endl;
-                std::cout << "Length of File List: " << lenFileList << std::endl;
-                std::cout << "===============================" << std::endl;
-                //extract file stats
-                while (offset < receiveFromServer)
-                {
-                    uint32_t fileNameLen = ntohl(*(uint32_t*)(bufferRecv + offset));
-                    offset += 4;
-                    std::string fileName(bufferRecv + offset, fileNameLen);
-                    offset += fileNameLen;
-                    
-                    std::cout << fileName << std::endl;
-                }
-            }
-
+        case RSP_DOWNLOAD:
+            handleDownloadResponse(bufferRecv, bytesReceived);
+            break;
+        case RSP_LISTFILES:
+            handleListFilesResponse(bufferRecv, bytesReceived);
+            break;
+        default:
+            std::cerr << "Unknown command received: " << static_cast<int>(cmdID) << "\n";
+            break;
         }
     }
-} 
+}

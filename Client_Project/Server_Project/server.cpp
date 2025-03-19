@@ -501,7 +501,7 @@ SessionMap      sessionSeqNum;
          offset += sizeof(fileNameLenNet);
 
          memcpy(bufferSend + offset, file.first.c_str(), file.first.size());
-         offset += file.first.size();
+         offset += (int)file.first.size();
      }
 
      send(clientSocket, bufferSend, offset, 0);
@@ -561,7 +561,7 @@ SessionMap      sessionSeqNum;
      offset += sizeof(filenameLenNet);
 
      memcpy(bufferSend + offset, filename.c_str(), filename.size());
-     offset += filename.size();
+     offset += (int)filename.size();
 
      send(clientSocket, bufferSend, offset, 0);
 
@@ -625,7 +625,7 @@ void sendFileToClient(int udpSock, uint32_t sessionIdentifier,
         memcpy(dataPacketBuffer + bufferOffset, &sequenceNumNet, sizeof(sequenceNumNet));
         bufferOffset += sizeof(sequenceNumNet);
 
-        bufferOffset += chunkSize;
+        bufferOffset += (int)chunkSize;
 
         bool acknowledgementReceived = false;
         uint32_t acknowledgementNum;
@@ -675,7 +675,7 @@ void sendFileToClient(int udpSock, uint32_t sessionIdentifier,
             }
         }
 
-        filePosition += chunkSize;
+        filePosition += (uint32_t)chunkSize;
     }
 
     fileStream.close();
