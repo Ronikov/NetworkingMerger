@@ -49,7 +49,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define RETURN_CODE_3       3
 #define RETURN_CODE_4       4
 
-SOCKET udpSocket;
+SOCKET UDP_SOCKET;
 enum CMDID {
     UNKNOWN = (unsigned char)0x0,
     REQ_QUIT = (unsigned char)0x1,
@@ -62,9 +62,9 @@ enum CMDID {
 };
 
 void recv_TCP(int clientSocket);
-void recv_UDP(int clientUdpSocket, std::string filename, uint32_t expectedSessionID, sockaddr_in expectedServerAddr);
-sockaddr_in udpAddress;
-sockaddr_in serverUdpAddr;
+void recv_UDP(int clientUDP_SOCKET, std::string filename, uint32_t expectedSessionID, sockaddr_in expectedServerAddr);
+sockaddr_in UDP_ADDR;
+sockaddr_in SERVER_UDP_ADDR;
 std::string clientPath;
 
 
@@ -73,48 +73,32 @@ int main(int argc, char** argv)
 {
     constexpr uint16_t port = 2048;
 
-    // Get IP Address
-    std::string host{};
+    std::string host, portNumber, portString, serverUdpPort, clientUdpPort;
+
     std::cout << "Server IP Address: ";
     std::getline(std::cin, host);
 
-    // Get Port Number
-    std::string portNumber;
     std::cout << "Server TCP Port Number: ";
     std::getline(std::cin, portNumber);
 
 
-    std::string portString = portNumber;
+    portString = portNumber;
 
-    // Get Server UDP Port Number
-    std::string serverUdpPort;
     std::cout << "Server UDP Port Number: ";
     std::getline(std::cin, serverUdpPort);
 
-    // Get Client UDP Port Number
-    std::string clientUdpPort;
     std::cout << "Client UDP Port Number: ";
     std::getline(std::cin, clientUdpPort);
 
-
-    // Get Path for storing downloaded files
     std::cout << "Path: ";
     std::getline(std::cin, clientPath);
 
+    uint16_t server_UDP_Port = static_cast<uint16_t>(std::stoi(serverUdpPort));
+    uint16_t client_UDP_Port = static_cast<uint16_t>(std::stoi(clientUdpPort));
 
-    // Convert port numbers to integers
-    uint16_t serverUdpPortNum = static_cast<uint16_t>(std::stoi(serverUdpPort));
-    uint16_t clientUdpPortNum = static_cast<uint16_t>(std::stoi(clientUdpPort));
-
-
-    // This object holds the information about the version of Winsock that we
-    // are using, which is not necessarily the version that we requested.
     WSADATA wsaData{};
     SecureZeroMemory(&wsaData, sizeof(wsaData));
 
-    // Initialize Winsock. You must call WSACleanup when you are finished.
-    // As this function uses a reference counter, for each call to WSAStartup,
-    // you must call WSACleanup or suffer memory issues.
     int errorCode = WSAStartup(MAKEWORD(WINSOCK_VERSION, WINSOCK_SUBVERSION), &wsaData);
     if (NO_ERROR != errorCode)
     {
@@ -122,13 +106,11 @@ int main(int argc, char** argv)
         return errorCode;
     }
 
-    // Object hints indicates which protocols to use to fill in the info.
     addrinfo hints{};
     SecureZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_INET;			// IPv4
-    hints.ai_socktype = SOCK_STREAM;	// Reliable delivery
-    // Could be 0 to autodetect, but reliable delivery over IPv4 is always TCP.
-    hints.ai_protocol = IPPROTO_TCP;	// TCP
+    hints.ai_family = AF_INET;			
+    hints.ai_socktype = SOCK_STREAM;	
+    hints.ai_protocol = IPPROTO_TCP;	
 
     addrinfo* info = nullptr;
     errorCode = getaddrinfo(host.c_str(), portString.c_str(), &hints, &info);
@@ -140,30 +122,28 @@ int main(int argc, char** argv)
     }
 
 
-    // Create UDP socket for receiving files
-    udpSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (udpSocket == INVALID_SOCKET) {
-        std::cerr << "Failed to create UDP socket." << std::endl;
+    UDP_SOCKET = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (UDP_SOCKET == INVALID_SOCKET) {
+        std::cerr << "UDO socket invalid." << std::endl;
         WSACleanup();
         return 1;
     }
 
-    // Bind the UDP socket to the specified client port
-    udpAddress.sin_family = AF_INET;
-    udpAddress.sin_addr.s_addr = INADDR_ANY; // Accept data from any address
-    udpAddress.sin_port = htons(clientUdpPortNum);
+    UDP_ADDR.sin_family = AF_INET;
+    UDP_ADDR.sin_addr.s_addr = INADDR_ANY; 
+    UDP_ADDR.sin_port = htons(client_UDP_Port);
 
-    if (bind(udpSocket, (sockaddr*)&udpAddress, sizeof(udpAddress)) == SOCKET_ERROR) {
-        std::cerr << "Failed to bind UDP socket." << std::endl;
-        closesocket(udpSocket);
+    if (bind(UDP_SOCKET, (sockaddr*)&UDP_ADDR, sizeof(UDP_ADDR)) == SOCKET_ERROR) {
+        std::cerr << "UDP socket bind failed." << std::endl;
+        closesocket(UDP_SOCKET);
         WSACleanup();
         return 1;
     }
 
     
-    serverUdpAddr.sin_family = AF_INET;
-    serverUdpAddr.sin_port = htons(serverUdpPortNum); // The UDP port of the server
-    inet_pton(AF_INET, host.c_str(), &serverUdpAddr.sin_addr);
+    SERVER_UDP_ADDR.sin_family = AF_INET;
+    SERVER_UDP_ADDR.sin_port = htons(server_UDP_Port); 
+    inet_pton(AF_INET, host.c_str(), &SERVER_UDP_ADDR.sin_addr);
 
     SOCKET clientSocket = socket(
         info->ai_family,
@@ -221,7 +201,7 @@ int main(int argc, char** argv)
                 break;
             case 'd':
                 std::vector<char> buffer;
-                buffer.resize(MAX_STR_LEN); // Initial size, but we will adjust dynamically
+                buffer.resize(MAX_STR_LEN); 
 
                 size_t offset = 0;
 
@@ -270,7 +250,7 @@ int main(int argc, char** argv)
 
 
 
-void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID
+void recv_UDP(int UDP_SOCKET, std::string fileName, uint32_t expectedSessionID
     , sockaddr_in expectedServerAddr)
 {   
     sockaddr_in serverAddr, serverAddrRecv;
@@ -294,7 +274,7 @@ void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID
     while (!completedTransfer)
     {   
         int recvUDPfromServer = recvfrom(
-            udpSocket, bufferUdpRecv, sizeof(bufferUdpRecv) - 1, 0,
+            UDP_SOCKET, bufferUdpRecv, sizeof(bufferUdpRecv) - 1, 0,
             (sockaddr*)&serverAddr, &serverAddrSize
         );
 
@@ -363,7 +343,7 @@ void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID
                 //Ask the server to resend missing packet
                 uint32_t ackNumNet = htonl(expectedSeqNum - 1);
                 memcpy(bufferACKsend, &ackNumNet, sizeof(ackNumNet));
-                sendto(udpSocket, bufferACKsend, sizeof(bufferACKsend), 0,
+                sendto(UDP_SOCKET, bufferACKsend, sizeof(bufferACKsend), 0,
                     (sockaddr*)&serverAddrRecv, sizeof(serverAddrRecv));
 
                 std::cout << "[UDP] Requesting Resend for SeqNum: " << expectedSeqNum << std::endl;
@@ -383,7 +363,7 @@ void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID
 
             memcpy(&serverAddrRecv, &serverAddr, sizeof(serverAddr));
 
-            sendto(udpSocket, bufferACKsend, sizeof(bufferACKsend), 0,
+            sendto(UDP_SOCKET, bufferACKsend, sizeof(bufferACKsend), 0,
                 (sockaddr*)&serverAddrRecv, sizeof(serverAddrRecv));
             std::cout << "ACK Sent for SeqNum: " << seqNum << std::endl;
 
@@ -441,7 +421,7 @@ void handleDownloadResponse(const char* bufferRecv, int bytesReceived)
     expectedServerAddr.sin_port = htons(serverPortNum);
     inet_pton(AF_INET, serverIP, &expectedServerAddr.sin_addr);
 
-    std::thread udpRecvThread(recv_UDP, udpSocket, filename, sessionId, expectedServerAddr);
+    std::thread udpRecvThread(recv_UDP, UDP_SOCKET, filename, sessionId, expectedServerAddr);
     udpRecvThread.detach();
 }
 
