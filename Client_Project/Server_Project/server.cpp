@@ -1,9 +1,12 @@
 /* Start Header
 *****************************************************************/
 /*!
-\file server.cpp
-\author 
-\par 
+\file client.cpp
+\author
+\author Zulfami, b.zulfamiashrafi@digipen.edu
+\co author Brandon Poon, b.poon@digipen.edu
+\co author Gabriel Peh, peh.j@digipen.edu
+\par
 \date 17 March 2025
 \brief
 Copyright (C) 2025 DigiPen Institute of Technology.
