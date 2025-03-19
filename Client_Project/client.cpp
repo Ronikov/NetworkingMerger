@@ -404,19 +404,21 @@ void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID
 
 void recv_TCP(int clientSocket)
 {
-    char bufferRecv[1000] = {};
     while (true)
-    {   
+    {
+        char bufferRecv[MAX_STR_LEN] = {};
         int receiveFromServer = recv(clientSocket, bufferRecv, MAX_STR_LEN, 0);
 
-
-        //TCP RECV
-        if (receiveFromServer > 0)
-        {   
+        if (receiveFromServer <= 0)
+        {
+            std::cout << "Server closed the connection.\n";
+            break;
+        }
+        else
+        {
             bufferRecv[receiveFromServer] = '\0';
-            int cmdID = static_cast<int>(bufferRecv[0]);
-
-            if (cmdID == 3)
+            char cmdID = bufferRecv[0];
+            if (cmdID == RSP_DOWNLOAD)
             {
                 char serverIP[INET_ADDRSTRLEN];
                 int offset = 1;
@@ -458,8 +460,7 @@ void recv_TCP(int clientSocket)
                 std::thread UdprecvThread(recv_UDP, udpSocket, filename, sessionId, expectedServerAddr);
                 UdprecvThread.detach();
             }
-
-            else if (cmdID == 5)
+            else if (cmdID == RSP_LISTFILES)
             {
                 //extract RSP_LISTFILES datagram
                 int offset = 1;
@@ -488,10 +489,5 @@ void recv_TCP(int clientSocket)
             }
 
         }
-        else
-        {
-            std::cout << "Server closed the connection.\n";
-            break;
-        }
     }
-}
+} 
