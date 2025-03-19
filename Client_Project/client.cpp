@@ -2,7 +2,9 @@
 *****************************************************************/
 /*!
 \file client.cpp
-\author 
+\author Zulfami, b.zulfamiashrafi@digipen.edu
+\co author Brandon Poon, b.poon@digipen.edu
+\co author Gabriel Peh, peh.j@digipen.edu
 \par
 \date 17 March 2025
 \brief
