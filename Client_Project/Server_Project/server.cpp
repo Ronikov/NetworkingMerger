@@ -40,7 +40,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <queue>
  
 #pragma region TASKQUEUE.H
-
 template <typename TItem, typename TAction, typename TOnDisconnect>
 class TaskQueue
 {
@@ -85,8 +84,8 @@ private:
 
     TOnDisconnect& _onDisconnect;
 };
-
 #pragma endregion
+
 #pragma region TASKQUEUE.HPP
 
 static std::mutex _stdoutMutex;
@@ -233,23 +232,22 @@ TaskQueue<TItem, TAction, TOnDisconnect>::~TaskQueue()
 #define chunkSize            1024
 #define TIMEOUT_MS 2000
  
- enum CMDID {
-     UNKNOWN = (unsigned char)0x0,
-     REQ_QUIT = (unsigned char)0x1,
-     REQ_DOWNLOAD = (unsigned char)0x2,
-     RSP_DOWNLOAD = (unsigned char)0x3,
-     REQ_LISTFILES = (unsigned char)0x4,
-     RSP_LISTFILES = (unsigned char)0x5,
-     CMD_TEST = (unsigned char)0x20,
-     DOWNLOAD_ERROR = (unsigned char)0x30
- };
+enum class CMDID : uint8_t {
+    UNKNOWN         = 0x00,
+    REQ_QUIT        = 0x01,
+    REQ_DOWNLOAD    = 0x02,
+    RSP_DOWNLOAD    = 0x03,
+    REQ_LISTFILES   = 0x04,
+    RSP_LISTFILES   = 0x05,
+    CMD_TEST        = 0x20,
+    DOWNLOAD_ERROR  = 0x30
+};
  
 void sendFileToClient(int udpSocket, uint32_t sessionID,
     std::string filename, uint16_t clientPortNum, std::string clientIP, uint32_t sessionIDNetwork,
     uint32_t fileSizeNet, std::string filePath);
 
  std::map<SOCKET, std::pair<std::string, uint16_t>> connectedClients;
- //void recvUdpMsgs(int clientUdpSocket);
  std::string path;
  char serverIPAddr[MAX_STR_LEN];
  std::string UDPportNumber;
@@ -260,10 +258,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
  
  int main()
  {
-     //constexpr uint16_t port = 2048;
- 
-     //const std::string portString = std::to_string(port);
- 
      // Get Port Number
      std::string TCPportNumber;
      std::cout << "Server TCP Port Number: ";
@@ -277,13 +271,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
      uint16_t udpPort = static_cast<uint16_t>(std::stoi(UDPportNumber));
  
      
- 
-     // -------------------------------------------------------------------------
-     // Start up Winsock, asking for version 2.2.
-     //
-     // WSAStartup()
-     // -------------------------------------------------------------------------
- 
      // This object holds the information about the version of Winsock that we
      // are using, which is not necessarily the version that we requested.
      WSADATA wsaData{};
@@ -297,21 +284,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
          std::cerr << "WSAStartup() failed." << std::endl;
          return errorCode;
      }
- 
-     //std::cout
-     //	<< "Winsock version: "
-     //	<< static_cast<int>(LOBYTE(wsaData.wVersion))
-     //	<< "."
-     //	<< static_cast<int>(HIBYTE(wsaData.wVersion))
-     //	<< "\n"
-     //	<< std::endl;
- 
- 
-     // -------------------------------------------------------------------------
-     // Resolve own host name into IP addresses (in a singly-linked list).
-     //
-     // getaddrinfo()
-     // -------------------------------------------------------------------------
  
      // Object hints indicates which protocols to use to fill in the info.
      addrinfo hints{};
@@ -347,17 +319,11 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
      std::cout << "Server UDP Port Number: " << udpPort << std::endl;
  
  
-     // -------------------------------------------------------------------------
-     // Create a socket and bind it to own network interface controller.
-     //
-     // socket()
-     // bind()
-     // -------------------------------------------------------------------------
- 
      SOCKET tcpSocket = socket(
          hints.ai_family,
          hints.ai_socktype,
          hints.ai_protocol);
+
      if (tcpSocket == INVALID_SOCKET)
      {
          std::cerr << "TCPsocket() failed." << std::endl;
@@ -407,13 +373,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
      }
  
  
-     // -------------------------------------------------------------------------
-     // Set a socket in a listening mode and accept 1 incoming client.
-     //
-     // listen()
-     // accept()
-     // -------------------------------------------------------------------------
- 
      errorCode = listen(tcpSocket, SOMAXCONN);
      if (errorCode != NO_ERROR)
      {
@@ -423,8 +382,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
          return 3;
      }
 
-     //std::thread UdprecvThread(recvUdpMsgs, udpSocket);
-     //UdprecvThread.detach();
  
      {
          const auto onDisconnect = [&]() { disconnect(tcpSocket); };
@@ -474,47 +431,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
      }
  }
 
-
- //void recvUdpMsgs(int udpSocket)
- //{
- //    char udpRecvBuffer[1024];
- //    sockaddr_in clientAddr;
- //    int clientAddrSize = sizeof(clientAddr);
-
-
- //    while (true)
- //    {
-
- //        //UDP
- //        int udpBytesReceived = recvfrom(
- //            udpSocket, udpRecvBuffer, sizeof(udpRecvBuffer) - 1, 0,
- //            (sockaddr*)&clientAddr, &clientAddrSize
- //        );
-
- //        if (udpBytesReceived > 0) {
- //            udpRecvBuffer[udpBytesReceived] = '\0';
-
- //            char clientIP[INET_ADDRSTRLEN];
- //            inet_ntop(AF_INET, &clientAddr.sin_addr, clientIP, INET_ADDRSTRLEN);
- //            uint16_t clientPort = ntohs(clientAddr.sin_port);
-
- //            std::cout << "Received UDP message from " << clientIP << ":" << clientPort
- //                << " - " << udpRecvBuffer << std::endl;
-
- //            std::string response = "Server Echo: " + std::string(udpRecvBuffer);
-
- //            sendto(udpSocket, response.c_str(), response.size(), 0,
- //                (sockaddr*)&clientAddr, sizeof(clientAddr));
- //            std::cout << "Sent UDP response to " << clientIP << ":" << clientPort << std::endl;
- //        }
- //    }
-
- //}
-
- void sendUdpMsgs(int udpSocket)
- {
-
- }
 
  std::vector<std::pair<std::string, uint32_t>> GetFiles(std::string path)
 {
@@ -583,7 +499,7 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
             char bufferSend[1000] = {};
             int offset = 0;
 
-            bufferSend[offset] = static_cast<char>(RSP_LISTFILES);
+            bufferSend[offset] = static_cast<char>(CMDID::RSP_LISTFILES);
             offset += 1;
 
             //get files into vector
@@ -647,12 +563,12 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
 
              if (!std::filesystem::exists(filePath)) {
                  std::cerr << "File not found: " << filePath << std::endl;
-                 char errorMsg = static_cast<char>(DOWNLOAD_ERROR);
+                 char errorMsg = static_cast<char>(CMDID::DOWNLOAD_ERROR);
                  send(clientSocket, &errorMsg, 1, 0);
              }
              else {
                  //send RSP_DOWNLOAD tcp msg to client
-                 char ID = static_cast<char>(RSP_DOWNLOAD);
+                 char ID = static_cast<char>(CMDID::RSP_DOWNLOAD);
                  int offset = 0;
                  bufferSend[offset] = ID;
                  offset += 1;
@@ -696,14 +612,6 @@ void sendFileToClient(int udpSocket, uint32_t sessionID,
              }
          }
      }
- 
- 
-     // -------------------------------------------------------------------------
-     // Shut down and close sockets.
-     //
-     // shutdown()
-     // closesocket()
-     // -------------------------------------------------------------------------
  
      shutdown(clientSocket, SD_BOTH);
      closesocket(clientSocket);

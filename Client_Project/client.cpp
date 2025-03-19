@@ -48,15 +48,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define RETURN_CODE_4       4
 
 SOCKET udpSocket;
-enum CMDID {
-    UNKNOWN = (unsigned char)0x0,
-    REQ_QUIT = (unsigned char)0x1,
-    REQ_DOWNLOAD = (unsigned char)0x2,
-    RSP_DOWNLOAD = (unsigned char)0x3,
-    REQ_LISTFILES = (unsigned char)0x4,
-    RSP_LISTFILES = (unsigned char)0x5,
-    CMD_TEST = (unsigned char)0x20,
-    DOWNLOAD_ERROR = (unsigned char)0x30
+enum class CMDID : uint8_t {
+    UNKNOWN         = 0x00,
+    REQ_QUIT        = 0x01,
+    REQ_DOWNLOAD    = 0x02,
+    RSP_DOWNLOAD    = 0x03,
+    REQ_LISTFILES   = 0x04,
+    RSP_LISTFILES   = 0x05,
+    CMD_TEST        = 0x20,
+    DOWNLOAD_ERROR  = 0x30
 };
 
 void recvTcpMsgs(int clientSocket);
@@ -105,11 +105,6 @@ int main(int argc, char** argv)
     uint16_t serverUdpPortNum = static_cast<uint16_t>(std::stoi(serverUdpPort));
     uint16_t clientUdpPortNum = static_cast<uint16_t>(std::stoi(clientUdpPort));
 
-    // -------------------------------------------------------------------------
-    // Start up Winsock, asking for version 2.2.
-    //
-    // WSAStartup()
-    // -------------------------------------------------------------------------
 
     // This object holds the information about the version of Winsock that we
     // are using, which is not necessarily the version that we requested.
@@ -125,13 +120,6 @@ int main(int argc, char** argv)
         std::cerr << "WSAStartup() failed." << std::endl;
         return errorCode;
     }
-
-
-    // -------------------------------------------------------------------------
-    // Resolve a server host name into IP addresses (in a singly-linked list).
-    //
-    // getaddrinfo()
-    // -------------------------------------------------------------------------
 
     // Object hints indicates which protocols to use to fill in the info.
     addrinfo hints{};
@@ -150,13 +138,6 @@ int main(int argc, char** argv)
         return errorCode;
     }
 
-
-    // -------------------------------------------------------------------------
-    // Create a socket and attempt to connect to the first resolved address.
-    //
-    // socket()
-    // connect()
-    // -------------------------------------------------------------------------
 
     // Create UDP socket for receiving files
     udpSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -227,14 +208,14 @@ int main(int argc, char** argv)
         //TCP Send
         if (input == "/q")
         {
-            char byteSend = static_cast<char>(REQ_QUIT);
+            char byteSend = static_cast<char>(CMDID::REQ_QUIT);
             send(clientSocket, &byteSend, 1, 0);
             std::cout << "disconnection...\n";
             break;
         }
         else if (input.substr(0, 2) == "/l")
         {
-            char byteSend = static_cast<char>(REQ_LISTFILES);
+            char byteSend = static_cast<char>(CMDID::REQ_LISTFILES);
             send(clientSocket, &byteSend, 1, 0);
 
         }
@@ -243,7 +224,7 @@ int main(int argc, char** argv)
             char bufferSend[MAX_STR_LEN] = {};
             int offset = 0;
 
-            char cmdID = static_cast<char>(REQ_DOWNLOAD);
+            char cmdID = static_cast<char>(CMDID::REQ_DOWNLOAD);
             bufferSend[offset] = cmdID;
             offset += 1;
 
@@ -275,8 +256,6 @@ int main(int argc, char** argv)
             offset += filename.size();
 
             int TCPbytesSent = send(clientSocket, bufferSend, offset, 0);
-
-
         }
     }
     errorCode = shutdown(clientSocket, SD_SEND);
@@ -285,13 +264,6 @@ int main(int argc, char** argv)
         std::cerr << "shutdown() failed." << std::endl;
     }
     closesocket(clientSocket);
-
-    // -------------------------------------------------------------------------
-    // Clean-up after Winsock.
-    //
-    // WSACleanup()
-    // -------------------------------------------------------------------------
-
     WSACleanup();
 }
 
