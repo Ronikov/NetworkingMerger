@@ -205,57 +205,61 @@ int main(int argc, char** argv)
         input.erase();
         std::getline(std::cin, input);
         
-        //TCP Send
-        if (input == "/q")
+        char cmd = input[1];
+        char slash = input[0];
+
+        if (slash == '/')
         {
-            char byteSend = static_cast<char>(CMDID::REQ_QUIT);
-            send(clientSocket, &byteSend, 1, 0);
-            std::cout << "disconnection...\n";
-            break;
-        }
-        else if (input.substr(0, 2) == "/l")
-        {
-            char byteSend = static_cast<char>(CMDID::REQ_LISTFILES);
-            send(clientSocket, &byteSend, 1, 0);
+            char byteSend;
+            switch (cmd)
+            {
+            case 'q':
+                byteSend = static_cast<char>(CMDID::REQ_QUIT);
+                send(clientSocket, &byteSend, 1, 0);
+                std::cout << "disconnection...\n";
+                break;
+            case 'l':
+                byteSend = static_cast<char>(CMDID::REQ_LISTFILES);
+                send(clientSocket, &byteSend, 1, 0);
+                break;
+            case 'd':
+                char bufferSend[MAX_STR_LEN] = {};
+                int offset = 0;
 
-        }
-        else if (input.substr(0, 2) == "/d" && input.substr(2).size() > 0)
-        {
-            char bufferSend[MAX_STR_LEN] = {};
-            int offset = 0;
+                char cmdID = static_cast<char>(CMDID::REQ_DOWNLOAD);
+                bufferSend[offset] = cmdID;
+                offset += 1;
 
-            char cmdID = static_cast<char>(CMDID::REQ_DOWNLOAD);
-            bufferSend[offset] = cmdID;
-            offset += 1;
+                //add clientIP to buffer
+                size_t colonPos = input.find_first_of(':');
+                std::string ipAddress = input.substr(3, colonPos - 3);
+                in_addr clientIP;
+                inet_pton(AF_INET, ipAddress.c_str(), &clientIP);
+                memcpy(bufferSend + offset, &clientIP, sizeof(clientIP));
+                offset += sizeof(clientIP);
 
-            //add clientIP to buffer
-            size_t colonPos = input.find_first_of(':');
-            std::string ipAddress = input.substr(3, colonPos - 3);
-            in_addr clientIP;
-            inet_pton(AF_INET, ipAddress.c_str(), &clientIP);
-            memcpy(bufferSend + offset, &clientIP, sizeof(clientIP));
-            offset += sizeof(clientIP);
+                //add client PORT number to buffer
+                size_t spacePos = input.find_first_of(' ', colonPos + 1);
+                std::string portNumStr = input.substr(colonPos + 1, spacePos - colonPos - 1);
+                uint16_t clientPortNum = htons(static_cast<uint16_t>(std::stoi(portNumStr)));
+                memcpy(bufferSend + offset, &clientPortNum, sizeof(clientPortNum));
+                offset += sizeof(clientPortNum);
 
-            //add client PORT number to buffer
-            size_t spacePos = input.find_first_of(' ', colonPos + 1);
-            std::string portNumStr = input.substr(colonPos + 1, spacePos - colonPos - 1);
-            uint16_t clientPortNum = htons(static_cast<uint16_t>(std::stoi(portNumStr)));
-            memcpy(bufferSend + offset, &clientPortNum, sizeof(clientPortNum));
-            offset += sizeof(clientPortNum);
+                //extract filename
+                std::string filename = input.substr(spacePos + 1);
 
-            //extract filename
-            std::string filename = input.substr(spacePos + 1);
+                //add filename len to buffer
+                uint32_t filenameLen = htonl(static_cast<uint32_t>(filename.size()));
+                memcpy(bufferSend + offset, &filenameLen, sizeof(filenameLen));
+                offset += sizeof(filenameLen);
 
-            //add filename len to buffer
-            uint32_t filenameLen = htonl(static_cast<uint32_t>(filename.size()));
-            memcpy(bufferSend + offset, &filenameLen, sizeof(filenameLen));
-            offset += sizeof(filenameLen);
+                //add filename to buffer
+                memcpy(bufferSend + offset, filename.data(), filename.size());
+                offset += filename.size();
 
-            //add filename to buffer
-            memcpy(bufferSend + offset, filename.data(), filename.size());
-            offset += filename.size();
-
-            int TCPbytesSent = send(clientSocket, bufferSend, offset, 0);
+                int TCPbytesSent = send(clientSocket, bufferSend, offset, 0);
+                break;
+            }
         }
     }
     errorCode = shutdown(clientSocket, SD_SEND);
