@@ -420,7 +420,7 @@ void handleDownloadResponse(const char* recvBuffer, int bufferSize)
     udpServerAddr.sin_port = htons(udpPort);
     inet_pton(AF_INET, serverIPAddr, &udpServerAddr.sin_addr);
 
-    std::thread udpReceiverThread(recv_UDP, udpSocket, fileName, sessionID, udpServerAddr);
+    std::thread udpReceiverThread(recv_UDP, UDP_SOCKET, fileName, sessionID, udpServerAddr);
     udpReceiverThread.detach();
 }
 
