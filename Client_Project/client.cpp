@@ -61,12 +61,225 @@ enum CMDID {
     DOWNLOAD_ERROR = (unsigned char)0x30
 };
 
-void recv_TCP(int clientSocket);
-void recv_UDP(int clientUDP_SOCKET, std::string filename, uint32_t expectedSessionID, sockaddr_in expectedServerAddr);
 sockaddr_in UDP_ADDR;
 sockaddr_in SERVER_UDP_ADDR;
 std::string clientPath;
 
+
+void sendAcknowledgment(int udpSocket, uint32_t ackNumber, sockaddr_in& serverAddr)
+{
+    char ackBuffer[4];
+    uint32_t ackNumberNetworkOrder = htonl(ackNumber);
+    memcpy(ackBuffer, &ackNumberNetworkOrder, sizeof(ackNumberNetworkOrder));
+
+    sendto(udpSocket, ackBuffer, sizeof(ackBuffer), 0, (sockaddr*)&serverAddr, sizeof(serverAddr));
+    std::cout << "Acknowledgment sent for sequence number: " << ackNumber << "\n";
+}
+
+void processPacket(uint32_t sequenceNumber, uint32_t& expectedSequenceNumber,
+    std::unordered_set<uint32_t>& receivedSequenceNumbers,
+    char* data, uint32_t dataSize, uint32_t fileOffset,
+    std::ofstream& outputFile, int udpSocket, sockaddr_in& serverAddr)
+{
+    char ackBuffer[4] = {};
+
+    if (sequenceNumber == expectedSequenceNumber && receivedSequenceNumbers.find(sequenceNumber) == receivedSequenceNumbers.end()) {
+        outputFile.seekp(fileOffset);
+        outputFile.write(data, dataSize);
+        receivedSequenceNumbers.insert(sequenceNumber);
+        expectedSequenceNumber++;
+        std::cout << "Received chunk - Sequence: " << sequenceNumber << "\n";
+    }
+    else if (sequenceNumber < expectedSequenceNumber) {
+        std::cout << "Duplicate packet detected! Sequence: " << sequenceNumber << "\n";
+    }
+    else {
+        std::cout << "Out-of-order packet received. Expected sequence: " << expectedSequenceNumber
+            << " but got: " << sequenceNumber << "\n";
+    }
+
+    sendAcknowledgment(udpSocket, sequenceNumber, serverAddr);
+}
+
+void handleReceivedPacket(char* receiveBuffer, int bytesReceived, sockaddr_in& serverAddr,
+    uint32_t expectedSessionID, uint32_t& expectedSequenceNumber,
+    uint32_t& totalReceivedData, uint32_t& fileSize,
+    std::unordered_set<uint32_t>& receivedSequenceNumbers,
+    std::ofstream& outputFile, int udpSocket)
+{
+    int bufferOffset = 0;
+
+    uint32_t sessionID = ntohl(*(uint32_t*)(receiveBuffer + bufferOffset));
+    bufferOffset += 4;
+    if (sessionID != expectedSessionID) {
+        std::cout << "[UDP] Ignoring packet: Incorrect session ID " << sessionID
+            << " (Expected: " << expectedSessionID << ")" << std::endl;
+        return;
+    }
+
+    fileSize = ntohl(*(uint32_t*)(receiveBuffer + bufferOffset));
+    bufferOffset += 4;
+    uint32_t fileOffset = ntohl(*(uint32_t*)(receiveBuffer + bufferOffset));
+    bufferOffset += 4;
+    uint32_t fileChunkSize = ntohl(*(uint32_t*)(receiveBuffer + bufferOffset));
+    bufferOffset += 4;
+    uint32_t sequenceNumber = ntohl(*(uint32_t*)(receiveBuffer + bufferOffset));
+    bufferOffset += 4;
+
+    processPacket(sequenceNumber, expectedSequenceNumber, receivedSequenceNumbers,
+        receiveBuffer + bufferOffset, fileChunkSize, fileOffset,
+        outputFile, udpSocket, serverAddr);
+
+    totalReceivedData += fileChunkSize;
+}
+
+void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID, sockaddr_in expectedServerAddr)
+{
+    sockaddr_in serverAddr;
+    int serverAddrSize = sizeof(serverAddr);
+    char receiveBuffer[2000] = {};
+
+    std::string filePath = clientPath + "/" + fileName;
+    std::ofstream outputFile(filePath, std::ios::binary);
+    if (!outputFile) {
+        std::cerr << "Error: Cannot create or write to file " << filePath << std::endl;
+        return;
+    }
+
+    uint32_t expectedSequenceNumber = 1;
+    bool isTransferComplete = false;
+    std::unordered_set<uint32_t> receivedSequenceNumbers;
+    uint32_t totalReceivedData = 0;
+    uint32_t fileSize = 0;
+
+    while (!isTransferComplete)
+    {
+        int bytesReceived = recvfrom(udpSocket, receiveBuffer, sizeof(receiveBuffer) - 1, 0,
+            (sockaddr*)&serverAddr, &serverAddrSize);
+
+        if (bytesReceived == -1) {
+            std::cerr << "[UDP] Error receiving data! Errno: " << WSAGetLastError() << std::endl;
+        }
+        else if (bytesReceived > 0) {
+            if (serverAddr.sin_addr.s_addr != expectedServerAddr.sin_addr.s_addr ||
+                serverAddr.sin_port != expectedServerAddr.sin_port)
+            {
+                std::cout << "[UDP] Ignoring packet from unknown server" << std::endl;
+                continue;
+            }
+
+            handleReceivedPacket(receiveBuffer, bytesReceived, serverAddr, expectedSessionID,
+                expectedSequenceNumber, totalReceivedData, fileSize,
+                receivedSequenceNumbers, outputFile, udpSocket);
+
+            if (totalReceivedData >= fileSize)
+            {
+                isTransferComplete = true;
+                break;
+            }
+        }
+        else {
+            std::cout << "Not Receiving Bytes" << std::endl;
+        }
+    }
+
+    outputFile.close();
+    std::cout << "[UDP] File received successfully!" << std::endl;
+}
+
+void handleDownloadResponse(const char* recvBuffer, int bufferSize)
+{
+    int readOffset = 1;
+    in_addr serverAddress;
+    memcpy(&serverAddress, recvBuffer + readOffset, sizeof(serverAddress));
+    char serverIPAddr[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &serverAddress, serverIPAddr, INET_ADDRSTRLEN);
+    readOffset += sizeof(serverAddress);
+
+    uint16_t udpPort = ntohs(*(uint16_t*)(recvBuffer + readOffset));
+    readOffset += sizeof(uint16_t);
+
+    uint32_t sessionID = ntohl(*(uint32_t*)(recvBuffer + readOffset));
+    readOffset += sizeof(uint32_t);
+
+    uint32_t fileSizeBytes = ntohl(*(uint32_t*)(recvBuffer + readOffset));
+    readOffset += sizeof(uint32_t);
+
+    uint32_t fileNameLength = ntohl(*(uint32_t*)(recvBuffer + readOffset));
+    readOffset += sizeof(uint32_t);
+
+    std::string fileName(recvBuffer + readOffset, fileNameLength);
+
+    std::cout << "Connected to server at " << serverIPAddr << " on UDP port " << udpPort << "\n"
+        << "Session ID: " << sessionID << "\n"
+        << "File size: " << fileSizeBytes << " bytes\n"
+        << "Requesting file: " << fileName << "\n";
+
+    sockaddr_in udpServerAddr{};
+    udpServerAddr.sin_family = AF_INET;
+    udpServerAddr.sin_port = htons(udpPort);
+    inet_pton(AF_INET, serverIPAddr, &udpServerAddr.sin_addr);
+
+    std::thread udpReceiverThread(recv_UDP, UDP_SOCKET, fileName, sessionID, udpServerAddr);
+    udpReceiverThread.detach();
+}
+
+void handleListFilesResponse(const char* recvBuffer, int bufferSize)
+{
+    int readOffset = 1;
+    uint16_t totalFiles = ntohs(*(uint16_t*)(recvBuffer + readOffset));
+    readOffset += sizeof(uint16_t);
+
+    uint32_t listSize = ntohl(*(uint32_t*)(recvBuffer + readOffset));
+    readOffset += sizeof(uint32_t);
+
+    std::cout << "File listing received:" << std::endl;
+    std::cout << "Total files available: " << totalFiles << std::endl;
+    std::cout << "List size: " << listSize << " bytes" << std::endl;
+    std::cout << "--------------------------------" << std::endl;
+
+    while (readOffset < bufferSize)
+    {
+        uint32_t currentFileNameLength = ntohl(*(uint32_t*)(recvBuffer + readOffset));
+        readOffset += sizeof(uint32_t);
+
+        std::string currentFileName(recvBuffer + readOffset, currentFileNameLength);
+        readOffset += currentFileNameLength;
+
+        std::cout << currentFileName << "\n";
+    }
+}
+
+void recv_TCP(int socketDescriptor)
+{
+    while (true)
+    {
+        char recvBuffer[MAX_STR_LEN] = {};
+        int bytesRead = recv(socketDescriptor, recvBuffer, MAX_STR_LEN, 0);
+
+        if (bytesRead <= 0)
+        {
+            std::cout << "Connection to the server has been closed." << std::endl;
+            break;
+        }
+
+        recvBuffer[bytesRead] = '\0';
+        char commandID = recvBuffer[0];
+
+        switch (commandID)
+        {
+        case RSP_DOWNLOAD:
+            handleDownloadResponse(recvBuffer, bytesRead);
+            break;
+        case RSP_LISTFILES:
+            handleListFilesResponse(recvBuffer, bytesRead);
+            break;
+        default:
+            std::cerr << "Unrecognized command received: " << static_cast<int>(commandID) << std::endl;
+            break;
+        }
+    }
+}
 
 // This program requires one extra command-line parameter: a server hostname.
 int main(int argc, char** argv)
@@ -108,9 +321,9 @@ int main(int argc, char** argv)
 
     addrinfo hints{};
     SecureZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_INET;			
-    hints.ai_socktype = SOCK_STREAM;	
-    hints.ai_protocol = IPPROTO_TCP;	
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
 
     addrinfo* info = nullptr;
     errorCode = getaddrinfo(host.c_str(), portString.c_str(), &hints, &info);
@@ -130,7 +343,7 @@ int main(int argc, char** argv)
     }
 
     UDP_ADDR.sin_family = AF_INET;
-    UDP_ADDR.sin_addr.s_addr = INADDR_ANY; 
+    UDP_ADDR.sin_addr.s_addr = INADDR_ANY;
     UDP_ADDR.sin_port = htons(client_UDP_Port);
 
     if (bind(UDP_SOCKET, (sockaddr*)&UDP_ADDR, sizeof(UDP_ADDR)) == SOCKET_ERROR) {
@@ -140,9 +353,9 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    
+
     SERVER_UDP_ADDR.sin_family = AF_INET;
-    SERVER_UDP_ADDR.sin_port = htons(server_UDP_Port); 
+    SERVER_UDP_ADDR.sin_port = htons(server_UDP_Port);
     inet_pton(AF_INET, host.c_str(), &SERVER_UDP_ADDR.sin_addr);
 
     SOCKET clientSocket = socket(
@@ -180,7 +393,7 @@ int main(int argc, char** argv)
     {
         input.erase();
         std::getline(std::cin, input);
-        
+
         char cmd = input[1];
         char slash = input[0];
         int offset = 0;
@@ -205,7 +418,7 @@ int main(int argc, char** argv)
             case 'd':
                 print = false;
                 std::vector<char> buffer;
-                buffer.resize(MAX_STR_LEN); 
+                buffer.resize(MAX_STR_LEN);
 
                 size_t offset = 0;
 
@@ -216,7 +429,7 @@ int main(int argc, char** argv)
                 size_t ipEndPos = input.find(':');
                 std::string ipAddress = input.substr(cmd_offset, ipEndPos - cmd_offset);
 
-                in_addr clientIPAddress{}; 
+                in_addr clientIPAddress{};
                 inet_pton(AF_INET, ipAddress.c_str(), &clientIPAddress);
 
                 buffer.insert(buffer.begin() + offset, reinterpret_cast<char*>(&clientIPAddress), reinterpret_cast<char*>(&clientIPAddress) + sizeof(clientIPAddress));
@@ -393,99 +606,4 @@ void recv_UDP(int UDP_SOCKET, std::string fileName, uint32_t expectedSessionID
     }
     outFile.close();
     std::cout << "[UDP] File received successfully!" << std::endl;
-}
-
-
-
-void handleDownloadResponse(const char* recvBuffer, int bufferSize)
-{
-    int readOffset = 1;
-    in_addr serverAddress;
-    memcpy(&serverAddress, recvBuffer + readOffset, sizeof(serverAddress));
-    char serverIPAddr[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &serverAddress, serverIPAddr, INET_ADDRSTRLEN);
-    readOffset += sizeof(serverAddress);
-
-    uint16_t udpPort = ntohs(*(uint16_t*)(recvBuffer + readOffset));
-    readOffset += sizeof(uint16_t);
-
-    uint32_t sessionID = ntohl(*(uint32_t*)(recvBuffer + readOffset));
-    readOffset += sizeof(uint32_t);
-
-    uint32_t fileSizeBytes = ntohl(*(uint32_t*)(recvBuffer + readOffset));
-    readOffset += sizeof(uint32_t);
-
-    uint32_t fileNameLength = ntohl(*(uint32_t*)(recvBuffer + readOffset));
-    readOffset += sizeof(uint32_t);
-
-    std::string fileName(recvBuffer + readOffset, fileNameLength);
-
-    std::cout << "Server IP Address: " << serverIPAddr << "\n"
-        << "Server UDP Port: " << udpPort << "\n"
-        << "Session ID: " << sessionID << "\n"
-        << "File Size: " << fileSizeBytes << "\n";
-
-    sockaddr_in udpServerAddr{};
-    udpServerAddr.sin_family = AF_INET;
-    udpServerAddr.sin_port = htons(udpPort);
-    inet_pton(AF_INET, serverIPAddr, &udpServerAddr.sin_addr);
-
-    std::thread udpReceiverThread(recv_UDP, UDP_SOCKET, fileName, sessionID, udpServerAddr);
-    udpReceiverThread.detach();
-}
-
-void handleListFilesResponse(const char* recvBuffer, int bufferSize)
-{
-    int readOffset = 1;
-    uint16_t totalFiles = ntohs(*(uint16_t*)(recvBuffer + readOffset));
-    readOffset += sizeof(uint16_t);
-
-    uint32_t listSize = ntohl(*(uint32_t*)(recvBuffer + readOffset));
-    readOffset += sizeof(uint32_t);
-
-    std::cout << "Number of Files: " << totalFiles << std::endl
-        << "Length of File List: " << listSize << std::endl
-        << "===============================" << std::endl;
-
-    while (readOffset < bufferSize)
-    {
-        uint32_t currentFileNameLength = ntohl(*(uint32_t*)(recvBuffer + readOffset));
-        readOffset += sizeof(uint32_t);
-
-        std::string currentFileName(recvBuffer + readOffset, currentFileNameLength);
-        readOffset += currentFileNameLength;
-
-        std::cout << currentFileName << std::endl;
-    }
-}
-
-void recv_TCP(int socketDescriptor)
-{
-    while (true)
-    {
-        char recvBuffer[MAX_STR_LEN] = {};
-        int bytesRead = recv(socketDescriptor, recvBuffer, MAX_STR_LEN, 0);
-
-        if (bytesRead <= 0)
-        {
-            std::cout << "Server terminated the connection." << std::endl;
-            break;
-        }
-        if (bytesRead < MAX_STR_LEN)
-            recvBuffer[bytesRead - 1] = '\0';
-        char commandID = recvBuffer[0];
-
-        switch (commandID)
-        {
-        case RSP_DOWNLOAD:
-            handleDownloadResponse(recvBuffer, bytesRead);
-            break;
-        case RSP_LISTFILES:
-            handleListFilesResponse(recvBuffer, bytesRead);
-            break;
-        default:
-            std::cerr << "Invalid command received." << std::endl;
-            break;
-        }
-    }
 }
