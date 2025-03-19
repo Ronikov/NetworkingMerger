@@ -48,20 +48,19 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #define RETURN_CODE_4       4
 
 SOCKET udpSocket;
-enum class CMDID : uint8_t {
-    UNKNOWN         = 0x00,
-    REQ_QUIT        = 0x01,
-    REQ_DOWNLOAD    = 0x02,
-    RSP_DOWNLOAD    = 0x03,
-    REQ_LISTFILES   = 0x04,
-    RSP_LISTFILES   = 0x05,
-    CMD_TEST        = 0x20,
-    DOWNLOAD_ERROR  = 0x30
+enum CMDID {
+    UNKNOWN = (unsigned char)0x0,
+    REQ_QUIT = (unsigned char)0x1,
+    REQ_DOWNLOAD = (unsigned char)0x2,
+    RSP_DOWNLOAD = (unsigned char)0x3,
+    REQ_LISTFILES = (unsigned char)0x4,
+    RSP_LISTFILES = (unsigned char)0x5,
+    CMD_TEST = (unsigned char)0x20,
+    DOWNLOAD_ERROR = (unsigned char)0x30
 };
 
-void recvTcpMsgs(int clientSocket);
-void recvUdpMsgs(int clientUdpSocket, std::string filename, uint32_t expectedSessionID
-    , sockaddr_in expectedServerAddr);
+void recv_TCP(int clientSocket);
+void recv_UDP(int clientUdpSocket, std::string filename, uint32_t expectedSessionID, sockaddr_in expectedServerAddr);
 sockaddr_in udpAddr;
 sockaddr_in serverUdpAddr;
 std::string clientPath;
@@ -190,74 +189,70 @@ int main(int argc, char** argv)
     }
 
     std::string input, inputSent;
-    char bufferSend[MAX_STR_LEN] = {};
+    char buffer[MAX_STR_LEN] = {};
 
-
-    bool sentTwice = false;
-
-    std::thread recvThread(recvTcpMsgs, clientSocket);
+    std::thread recvThread(recv_TCP, clientSocket);
     recvThread.detach();
-
 
     while (true)
     {
-        //user input
         input.erase();
         std::getline(std::cin, input);
         
         char cmd = input[1];
         char slash = input[0];
-
+        int offset = 0;
+        int cmd_offset = 3;
         if (slash == '/')
         {
-            char byteSend;
+            char message;
             switch (cmd)
             {
             case 'q':
-                byteSend = static_cast<char>(CMDID::REQ_QUIT);
-                send(clientSocket, &byteSend, 1, 0);
+                message = CMDID::REQ_QUIT;
+                send(clientSocket, &message, sizeof(message), 0);
                 std::cout << "disconnection...\n";
                 break;
             case 'l':
-                byteSend = static_cast<char>(CMDID::REQ_LISTFILES);
-                send(clientSocket, &byteSend, 1, 0);
+                message = CMDID::REQ_LISTFILES;
+                send(clientSocket, &message, sizeof(message), 0);
                 break;
             case 'd':
-                char bufferSend[MAX_STR_LEN] = {};
-                int offset = 0;
+                std::vector<char> buffer;
+                buffer.resize(MAX_STR_LEN); // Initial size, but we will adjust dynamically
 
-                char cmdID = static_cast<char>(CMDID::REQ_DOWNLOAD);
-                bufferSend[offset] = cmdID;
+                size_t offset = 0;
+
+                char cmdID = CMDID::REQ_DOWNLOAD;
+                buffer[offset] = cmdID;
                 offset += 1;
 
-                //add clientIP to buffer
-                size_t colonPos = input.find_first_of(':');
-                std::string ipAddress = input.substr(3, colonPos - 3);
-                in_addr clientIP;
-                inet_pton(AF_INET, ipAddress.c_str(), &clientIP);
-                memcpy(bufferSend + offset, &clientIP, sizeof(clientIP));
-                offset += sizeof(clientIP);
+                size_t ipEndPos = input.find(':');
+                std::string ipAddress = input.substr(cmd_offset, ipEndPos - cmd_offset);
 
-                //add client PORT number to buffer
-                size_t spacePos = input.find_first_of(' ', colonPos + 1);
-                std::string portNumStr = input.substr(colonPos + 1, spacePos - colonPos - 1);
-                uint16_t clientPortNum = htons(static_cast<uint16_t>(std::stoi(portNumStr)));
-                memcpy(bufferSend + offset, &clientPortNum, sizeof(clientPortNum));
-                offset += sizeof(clientPortNum);
+                in_addr clientIPAddress{}; 
+                inet_pton(AF_INET, ipAddress.c_str(), &clientIPAddress);
 
-                //extract filename
+                buffer.insert(buffer.begin() + offset, reinterpret_cast<char*>(&clientIPAddress), reinterpret_cast<char*>(&clientIPAddress) + sizeof(clientIPAddress));
+                offset += sizeof(clientIPAddress);
+
+                size_t spacePos = input.find_last_of(' ');
+                std::string portString = input.substr(ipEndPos + 1, spacePos - ipEndPos - 1);
+                uint16_t clientPort = htons(static_cast<uint16_t>(std::stoi(portString)));
+
+                buffer.insert(buffer.begin() + offset, reinterpret_cast<char*>(&clientPort), reinterpret_cast<char*>(&clientPort) + sizeof(clientPort));
+                offset += sizeof(clientPort);
+
                 std::string filename = input.substr(spacePos + 1);
 
-                //add filename len to buffer
-                uint32_t filenameLen = htonl(static_cast<uint32_t>(filename.size()));
-                memcpy(bufferSend + offset, &filenameLen, sizeof(filenameLen));
-                offset += sizeof(filenameLen);
+                uint32_t filenameLength = htonl(static_cast<uint32_t>(filename.size()));
+                buffer.insert(buffer.begin() + offset, reinterpret_cast<char*>(&filenameLength), reinterpret_cast<char*>(&filenameLength) + sizeof(filenameLength));
+                offset += sizeof(filenameLength);
 
-                //add filename to buffer
-                memcpy(bufferSend + offset, filename.data(), filename.size());
+                buffer.insert(buffer.begin() + offset, filename.begin(), filename.end());
                 offset += filename.size();
 
-                int TCPbytesSent = send(clientSocket, bufferSend, offset, 0);
+                send(clientSocket, buffer.data(), offset, 0);
                 break;
             }
         }
@@ -271,7 +266,7 @@ int main(int argc, char** argv)
     WSACleanup();
 }
 
-void recvUdpMsgs(int udpSocket, std::string fileName, uint32_t expectedSessionID
+void recv_UDP(int udpSocket, std::string fileName, uint32_t expectedSessionID
     , sockaddr_in expectedServerAddr)
 {   
     sockaddr_in serverAddr, serverAddrRecv;
@@ -407,7 +402,7 @@ void recvUdpMsgs(int udpSocket, std::string fileName, uint32_t expectedSessionID
 }
 
 
-void recvTcpMsgs(int clientSocket)
+void recv_TCP(int clientSocket)
 {
     char bufferRecv[1000] = {};
     while (true)
@@ -460,7 +455,7 @@ void recvTcpMsgs(int clientSocket)
                 expectedServerAddr.sin_port = htons(serverPortNum);
                 inet_pton(AF_INET, serverIP, &expectedServerAddr.sin_addr);
 
-                std::thread UdprecvThread(recvUdpMsgs, udpSocket, filename, sessionId, expectedServerAddr);
+                std::thread UdprecvThread(recv_UDP, udpSocket, filename, sessionId, expectedServerAddr);
                 UdprecvThread.detach();
             }
 
