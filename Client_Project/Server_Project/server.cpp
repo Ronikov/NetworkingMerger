@@ -617,7 +617,7 @@ void sendFileToClient(int udpSock, uint32_t sessionIdentifier,
         memcpy(dataPacketBuffer + bufferOffset, &filePositionNet, sizeof(filePositionNet));
         bufferOffset += sizeof(filePositionNet);
 
-        uint32_t fileChunkLength = htonl(chunkSize);
+        uint32_t fileChunkLength = htonl((uint32_t)chunkSize);
         memcpy(dataPacketBuffer + bufferOffset, &fileChunkLength, sizeof(fileChunkLength));
         bufferOffset += sizeof(fileChunkLength);
 
