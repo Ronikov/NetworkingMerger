@@ -1,0 +1,21 @@
+# Directories
+.vs/
+.tmp/
+bin/
+bin-int/
+
+# Files
+*.user
+*.ipch
+*.suo
+*.db
+*.pdb
+*.exe
+*.ilk
+*.tlog
+*.obj
+*.idb
+*.log
+*.exp
+*.iobj
+*.ipdb
