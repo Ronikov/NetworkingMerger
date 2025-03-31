@@ -1,16 +1,16 @@
 /******************************************************************************/
 /*!
 \file		Main.cpp
-\author 	Jaasmeet Singh
-\par    	email: jaasmeet.s@digipen.edu
-\date   	February 02, 2023
-\brief		contains function main
+\author     goh.a@digipen.edu
+
+\date   	March 27 2025
+\brief		Main function
 
 Copyright (C) 2023 DigiPen Institute of Technology.
 Reproduction or disclosure of this file or its contents without the
 prior written consent of DigiPen Institute of Technology is prohibited.
  */
-/******************************************************************************/
+ /******************************************************************************/
 
 #include "main.h"
 #include <memory>
