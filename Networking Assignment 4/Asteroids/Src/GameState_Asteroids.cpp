@@ -52,6 +52,7 @@ const int			ASTEROID_SCORE			= 300;			// score per asteroid destroyed
 const float			ASTEROID_SIZE			= 70.0f;		// asteroid size
 const float			ASTEROID_SPEED			= 100.0f;		// maximum asteroid speed
 const float			ASTEROID_TIME			= 0.0f;			// 2 second spawn time for asteroids
+const int			ASTEROID_INIT_CNT		= 0;			// number of asteroid to init with
 
 
 //FOR LIVES PICKUP
@@ -290,7 +291,7 @@ void GameStateAsteroidsInit(void)
 	AE_ASSERT(spShip);
 
 	// CREATE THE INITIAL ASTEROIDS INSTANCES USING THE "gameObjInstCreate" FUNCTION
-	spawnAsteroid(4);
+	spawnAsteroid(ASTEROID_INIT_CNT);
 
 	// reset the score and the number of ships
 	sScore		= 0;
@@ -314,7 +315,7 @@ void GameStateAsteroidsUpdate(void)
 
 	//spawn asteroids
 	asteroid_timer += g_dt;
-	if (asteroid_timer > ASTEROID_TIME)
+	if (asteroid_timer > ASTEROID_TIME && ASTEROID_TIME != 0)
 	{
 		asteroid_timer -= ASTEROID_TIME;
 
@@ -1212,7 +1213,11 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 
 				break;
 			}
-			default:
+
+			case SEND_BULLETS: {
+
+			}
+ 			default:
 				break;
 			}
 		}
