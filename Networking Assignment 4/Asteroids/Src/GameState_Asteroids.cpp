@@ -51,7 +51,7 @@ const float			BULLET_SIZE				= 20.0f;		// bullet size
 const int			ASTEROID_SCORE			= 300;			// score per asteroid destroyed
 const float			ASTEROID_SIZE			= 70.0f;		// asteroid size
 const float			ASTEROID_SPEED			= 100.0f;		// maximum asteroid speed
-const float			ASTEROID_TIME			= 2.0f;			// 2 second spawn time for asteroids
+const float			ASTEROID_TIME			= 0.0f;			// 2 second spawn time for asteroids
 
 
 //FOR LIVES PICKUP
