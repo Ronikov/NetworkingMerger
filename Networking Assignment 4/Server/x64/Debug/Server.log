@@ -1,6 +1,7 @@
 ﻿  server.cpp
 E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Server\Source\server.cpp(112,47): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Server\Source\server.cpp(131,23): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Server\Source\server.cpp(217,5): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Server\Source\server.cpp(344,55): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Server\Source\server.cpp(147,120): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Server\Source\server.cpp(210,53): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Server\Source\server.cpp(221,16): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Server\Source\server.cpp(394,55): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   Server.vcxproj -> E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Bin\Server.exe

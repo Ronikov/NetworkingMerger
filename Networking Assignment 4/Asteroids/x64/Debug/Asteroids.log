@@ -4,23 +4,21 @@
   1 File(s) copied
   E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\freetype.dll
   1 File(s) copied
-  AtomicVariables.cpp
-  Client.cpp
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\Client.cpp(69,62): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-  Collision.cpp
-  GameStateMgr.cpp
   GameState_Asteroids.cpp
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(420,143): warning C4389: '==': signed/unsigned mismatch
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(443,138): warning C4389: '==': signed/unsigned mismatch
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(444,10): warning C4456: declaration of 'lerpDataEntry' hides previous local declaration
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(420,9): message : see declaration of 'lerpDataEntry'
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(444,144): warning C4389: '==': signed/unsigned mismatch
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(481,139): warning C4389: '==': signed/unsigned mismatch
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(484,143): warning C4389: '==': signed/unsigned mismatch
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1133,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1156,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1174,67): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-  Main.cpp
-  PathSmoother.cpp
-  Generating Code...
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(423,143): warning C4389: '==': signed/unsigned mismatch
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(446,138): warning C4389: '==': signed/unsigned mismatch
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(447,10): warning C4456: declaration of 'lerpDataEntry' hides previous local declaration
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(423,9): message : see declaration of 'lerpDataEntry'
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(447,144): warning C4389: '==': signed/unsigned mismatch
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(484,139): warning C4389: '==': signed/unsigned mismatch
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(487,143): warning C4389: '==': signed/unsigned mismatch
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1134,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1175,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1188,86): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1192,10): warning C4456: declaration of 'bufferPtr' hides previous local declaration
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1163,9): message : see declaration of 'bufferPtr'
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1201,11): warning C4456: declaration of 'moves' hides previous local declaration
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1143,9): message : see declaration of 'moves'
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1208,24): warning C4456: declaration of 'player' hides previous local declaration
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1136,23): message : see declaration of 'player'
   Asteroids.vcxproj -> E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe

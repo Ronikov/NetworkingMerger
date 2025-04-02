@@ -14,6 +14,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <iostream>
 #include <vector>
+#include <thread>
+#include <chrono>
 
 #include "AtomicVariables.h"
 #include "PathSmoother.h"
@@ -135,6 +137,7 @@ s8							font;										// roboto mono font ID
 
 
 //ADDING TEXTURES//
+
 static AEGfxTexture* asteroidTex;										// asteroid texture
 static AEGfxTexture* bulletTex;											// bullet texture
 static AEGfxTexture* livesTex;											// lives pickup texture
@@ -1104,10 +1107,8 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 		WSACleanup();
 		return;
 	}
-	// Define the timeout for each attempt in milliseconds
-	const int timeout_ms = 1000;
 
-	// Set the receive timeout option for the socket
+	const int timeout_ms = 1000;
 	DWORD timeout = timeout_ms;
 	if (setsockopt(udp_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout)) == SOCKET_ERROR)
 	{
@@ -1117,21 +1118,21 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 		return;
 	}
 
-	while(!av_game_over)
+	while (!av_game_over)
 	{
-		if(!av_connected || !av_start)
+		if (!av_connected || !av_start)
 		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			continue;
 		}
 
-		// Setup the broadcast address
 		sockaddr_in broadcastAddr;
 		broadcastAddr.sin_family = AF_INET;
-		broadcastAddr.sin_port = htons(9000); // 9000 for Server port auto connect
+		broadcastAddr.sin_port = htons(9000);
 		broadcastAddr.sin_addr.s_addr = INADDR_BROADCAST;
 
 		int num_bullets = bullet_list.size();
-		//std::vector<AEVec2> player_pos(1, spShip->posCurr);
+
 		std::vector<Player> player(1);
 		player[0].player_id = av_player_num;
 		player[0].position = spShip->posCurr;
@@ -1139,19 +1140,34 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 		player[0].direction = spShip->dirCurr;
 		player[0].num_bullets = num_bullets;
 
+		Moves moves{};
+		moves.player_id = av_player_num;
+		moves.shoot = AEInputCheckTriggered(AEVK_SPACE) ? 1 : 0; // You need to define this flag in your game logic
+
 		std::vector<Bullet> bullets(num_bullets);
-		for (int i{}; i < num_bullets; ++i)
+		for (int i = 0; i < num_bullets; ++i)
 		{
 			bullets[i].player_id = av_player_num;
 			bullets[i].position = bullet_list[i]->posCurr;
+			bullets[i].velocity = bullet_list[i]->velCurr;
+			bullets[i].direction = bullet_list[i]->dirCurr;
 		}
 
 		CMDID send_id = SEND_PLAYERS;
-		size_t dataSize = sizeof(Player) + (sizeof(Bullet) * num_bullets) + sizeof(send_id);
+		size_t dataSize = sizeof(send_id) + sizeof(Player) + sizeof(Moves) + sizeof(Bullet) * num_bullets;
 		std::vector<char> buffer(dataSize);
-		memcpy(buffer.data(), &send_id, sizeof(send_id));
-		memcpy(buffer.data() + sizeof(send_id), player.data(), sizeof(Player));
-		memcpy(buffer.data() + sizeof(send_id) + sizeof(Player), bullets.data(), sizeof(Bullet) * num_bullets);
+
+		char* bufferPtr = buffer.data();
+		memcpy(bufferPtr, &send_id, sizeof(send_id));
+		bufferPtr += sizeof(send_id);
+
+		memcpy(bufferPtr, player.data(), sizeof(Player));
+		bufferPtr += sizeof(Player);
+
+		memcpy(bufferPtr, &moves, sizeof(Moves));
+		bufferPtr += sizeof(Moves);
+
+		memcpy(bufferPtr, bullets.data(), sizeof(Bullet) * num_bullets);
 
 		if (sendto(udp_socket, buffer.data(), dataSize, 0, (SOCKADDR*)&broadcastAddr, sizeof(broadcastAddr)) == SOCKET_ERROR)
 		{
@@ -1161,64 +1177,71 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 			return;
 		}
 
-		// Receive the response from the server
 		sockaddr_in serverAddr;
 		int serverAddrSize = sizeof(serverAddr);
-
-		// Receive the vector elements
+		std::vector<char> receive_buffer(4096);
 		CMDID receive_id;
-		//std::vector<AEVec2> receivedPositions(av_player_max);
 
-		size_t data_size = 4096;
-		std::vector<char> receive_buffer(data_size);
-		int bytesReceived = recvfrom(udp_socket, receive_buffer.data(), data_size, 0, (SOCKADDR*)&serverAddr, &serverAddrSize);
+		int bytesReceived = recvfrom(udp_socket, receive_buffer.data(), receive_buffer.size(), 0, (SOCKADDR*)&serverAddr, &serverAddrSize);
 
-		if (bytesReceived != SOCKET_ERROR) {
+		if (bytesReceived != SOCKET_ERROR)
+		{
 			char* bufferPtr = receive_buffer.data();
-			memcpy(&receive_id, receive_buffer.data(), sizeof(receive_id));
+			memcpy(&receive_id, bufferPtr, sizeof(receive_id));
 			bufferPtr += sizeof(receive_id);
-			newDataReceived = true;
-			switch (receive_id)
+
+			if (receive_id == SEND_PLAYERS)
 			{
-			case SEND_PLAYERS: {
-				std::vector<Player> receivedplayer(av_player_max);
-				memcpy(receivedplayer.data(), receive_buffer.data() + sizeof(receive_id), av_player_max * sizeof(Player));
-				for (int i{}; i < player_list.size(); ++i)
+				newDataReceived = true;
+
+				std::vector<Player> receivedPlayers(av_player_max);
+				Moves moves{};
+				memcpy(receivedPlayers.data(), bufferPtr, av_player_max * sizeof(Player));
+				memcpy(&moves, receive_buffer.data() + sizeof(receive_id) + sizeof(Player), sizeof(Moves));
+				bufferPtr += av_player_max * sizeof(Player);
+
+				if (moves.shoot)
+				{
+					for (GameObjInst* player : player_list) {
+						if (player == nullptr) continue;
+						if (player->id == moves.player_id) {
+							std::cout << "Player " << moves.player_id << " is shootings!" << std::endl;
+
+						}
+					}
+				}
+
+				for (int i = 0; i < player_list.size(); ++i)
 				{
 					if (player_list[i] == nullptr) continue;
-					player_list[i]->id = receivedplayer[i].player_id;
-					player_list[i]->posCurr = receivedplayer[i].position;
-					player_list[i]->velCurr = receivedplayer[i].velocity;
-					player_list[i]->dirCurr = receivedplayer[i].direction;
+					player_list[i]->id = receivedPlayers[i].player_id;
+					player_list[i]->posCurr = receivedPlayers[i].position;
+					player_list[i]->velCurr = receivedPlayers[i].velocity;
+					player_list[i]->dirCurr = receivedPlayers[i].direction;
+
 					newPathData temp;
 					temp.newPosition = player_list[i]->posCurr;
 					temp.newVelocity = player_list[i]->velCurr;
 					temp.newDir = player_list[i]->dirCurr;
-					pathData.push_back(std::make_pair(i,temp));
+					pathData.push_back(std::make_pair(i, temp));
 				}
-				bufferPtr += av_player_max * sizeof(Player);
+
 				std::vector<Bullet> receivedBullets;
-				while (bufferPtr < receive_buffer.data() + bytesReceived) {
+				while (bufferPtr < receive_buffer.data() + bytesReceived)
+				{
 					Bullet bullet;
 					memcpy(&bullet, bufferPtr, sizeof(Bullet));
 					receivedBullets.push_back(bullet);
 					bufferPtr += sizeof(Bullet);
 				}
 
-				for (int i{}; i < receivedBullets.size(); ++i)
+				if (bullet_list.size() < receivedBullets.size())
 				{
-					/*std::cout << "Player id: " << receivedBullets[i].player_id << "\nPos: x,"
-						<< receivedBullets[i].position.x << " y, " << receivedBullets[i].position.y << "\n";*/
+					for (int i = (int)bullet_list.size(); i < receivedBullets.size(); ++i)
+					{
+						//bullet_list.emplace_back(gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &receivedBullets[i].position, &receivedBullets[i].velocity, receivedBullets[i].direction));
+					}
 				}
-
-				break;
-			}
-
-			case SEND_BULLETS: {
-
-			}
- 			default:
-				break;
 			}
 		}
 	}
