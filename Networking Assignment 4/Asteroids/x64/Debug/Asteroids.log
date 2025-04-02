@@ -1,1 +1,9 @@
-﻿
+﻿  E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\Alpha_EngineD.dll
+  1 File(s) copied
+  E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\Alpha_Engine.dll
+  1 File(s) copied
+  E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\freetype.dll
+  1 File(s) copied
+  Client.cpp
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\Client.cpp(69,62): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  Asteroids.vcxproj -> E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe
