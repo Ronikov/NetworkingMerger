@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <vector>
 #include <thread>
 #include <chrono>
+#include <map>
 
 #include "AtomicVariables.h"
 #include "PathSmoother.h"
@@ -59,6 +60,7 @@ const int			ASTEROID_INIT_CNT		= 0;			// number of asteroid to init with
 
 //FOR LIVES PICKUP
 const float			LIVES_SIZE				= 30.0f;		// lives pickup size
+std::map<int, int> LeaderboardMap;
 
 // -----------------------------------------------------------------------------
 enum TYPE
@@ -154,7 +156,7 @@ void				spawnLives(unsigned int count);			// function to spawn lives pickups
 
 void				initMultiPlayer(int num_player);
 
-std::vector<GameObjInst*> player_list;
+std::vector<GameObjInst*> player_list(4);
 bool newDataReceived = false;
 PathSmoother pathSmootherInstance;
 std::vector<std::pair<int ,newPathData>> pathData;		  // newly received path data for the object
@@ -291,6 +293,7 @@ void GameStateAsteroidsInit(void)
 	// create the main ship
 	spShip = gameObjInstCreate(TYPE_SHIP, SHIP_SIZE, nullptr, nullptr, 0.0f);
 	AE_ASSERT(spShip);
+	player_list[0] = spShip;
 
 	// CREATE THE INITIAL ASTEROIDS INSTANCES USING THE "gameObjInstCreate" FUNCTION
 	spawnAsteroid(ASTEROID_INIT_CNT);
@@ -304,6 +307,7 @@ void GameStateAsteroidsInitMultiPlayer(void)
 {
 	initMultiPlayer(av_player_max);
 }
+float attimer = 0.f;
 
 /******************************************************************************/
 /*!
@@ -388,7 +392,7 @@ void GameStateAsteroidsUpdate(void)
 		spShip->dirCurr -= SHIP_ROT_SPEED * g_dt; //(float)(AEFrameRateControllerGetFrameTime ());
 		spShip->dirCurr = AEWrap(spShip->dirCurr, -PI, PI);
 	}
-
+	attimer += AEFrameRateControllerGetFrameTime();
 	// Shoot a bullet if space is triggered (Create a new object instance)
 	if (AEInputCheckTriggered(AEVK_SPACE))
 	{
@@ -397,7 +401,6 @@ void GameStateAsteroidsUpdate(void)
 		// Create an instance
 
 
-	
 		// Temp storage for new bullet, spawned  ship pos
 		AEVec2 added;
 
@@ -410,7 +413,7 @@ void GameStateAsteroidsUpdate(void)
 
 		// Create an instance
 		//gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &spShip->posCurr, &added, spShip->dirCurr);
-		bullet_list.emplace_back(gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &spShip->posCurr, &added, spShip->dirCurr));
+		//bullet_list.emplace_back(gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &spShip->posCurr, &added, spShip->dirCurr));
 	}
 	if (av_connected)
 	{
@@ -850,9 +853,27 @@ void GameStateAsteroidsDraw(void)
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxPrint(font, strBuffer, 0.99f - textWidth, 0.99f - textHeight, 1, 255, 255, 255);
 
-	sprintf_s(strBuffer, "Ship Left: %d", sShipLives >= 0 ? sShipLives : 0);
+	LeaderboardMap[0] = 0;
+	LeaderboardMap[1] = 0;
+	LeaderboardMap[2] = 0;
+	LeaderboardMap[3] = 0;
+
+	sprintf_s(strBuffer, "Life Left: %d", sShipLives >= 0 ? sShipLives : 0);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxPrint(font, strBuffer, -0.99f, -0.99f + textHeight, 1, 255, 255, 255);
+
+	sprintf_s(strBuffer, "Player 1: %d", LeaderboardMap[0]);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight, 1, 255, 255, 255);
+	sprintf_s(strBuffer, "Player 2: %d", LeaderboardMap[1]);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight * 2, 1, 255, 0, 255);
+	sprintf_s(strBuffer, "Player 3: %d", LeaderboardMap[2]);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight * 3, 1, 255, 255, 0);
+	sprintf_s(strBuffer, "Player 4: %d", LeaderboardMap[3]);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight * 4, 1, 0, 255, 255);
 
 	// text that is drawn at the end of the game
 	if (sShipLives <= 0)
@@ -1199,10 +1220,9 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 
 				for (int i = 0; i < player_list.size(); ++i)
 				{
-					if (player_list[i] == nullptr) continue;
+					//if (player_list[i] == nullptr) continue;
+					if (i == 0) continue;
 
-					player_list[i]->id = receivedplayer[i].player_id;
-					player_list[i]->posCurr = receivedplayer[i].position;
 					player_list[i]->velCurr = receivedplayer[i].velocity;
 					player_list[i]->dirCurr = receivedplayer[i].direction;
 
@@ -1214,6 +1234,8 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 
 					if (receivedplayer[i].shoot)
 					{
+						if (attimer < 0.15f) break;
+						attimer = 0.f;
 						AEVec2 added;
 						AEVec2Set(&added, cosf(player_list[i]->dirCurr), sinf(player_list[i]->dirCurr));
 						AEVec2Normalize(&added, &added);
@@ -1236,7 +1258,7 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 
 void initMultiPlayer(int num_player)
 {
-	player_list.resize(num_player);
+	//player_list.resize(num_player);
 	for(int i {}; i < num_player; ++i)
 	{
 		if(i == 0) continue;

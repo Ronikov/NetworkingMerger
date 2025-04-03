@@ -5,16 +5,17 @@
   C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\freetype.dll
   1 File(s) copied
   GameState_Asteroids.cpp
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(422,143): warning C4389: '==': signed/unsigned mismatch
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(445,138): warning C4389: '==': signed/unsigned mismatch
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(446,10): warning C4456: declaration of 'lerpDataEntry' hides previous local declaration
-      C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(422,9):
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(395,46): warning C4244: '+=': conversion from 'f64' to 'float', possible loss of data
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(425,143): warning C4389: '==': signed/unsigned mismatch
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(448,138): warning C4389: '==': signed/unsigned mismatch
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(449,10): warning C4456: declaration of 'lerpDataEntry' hides previous local declaration
+      C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(425,9):
       see declaration of 'lerpDataEntry'
   
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(446,144): warning C4389: '==': signed/unsigned mismatch
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(483,139): warning C4389: '==': signed/unsigned mismatch
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(486,143): warning C4389: '==': signed/unsigned mismatch
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1142,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1170,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1180,86): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(449,144): warning C4389: '==': signed/unsigned mismatch
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(486,139): warning C4389: '==': signed/unsigned mismatch
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(489,143): warning C4389: '==': signed/unsigned mismatch
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1163,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1191,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1201,86): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   Asteroids.vcxproj -> C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe
