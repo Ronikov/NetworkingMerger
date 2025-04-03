@@ -28,6 +28,14 @@ struct Bullet
 {
 	int player_id;
 	Vec2 position;
+	Vec2 velocity;
+	float direction;
+};
+
+struct Moves
+{
+	int player_id;
+	bool shoot;
 };
 
 enum CMDID {

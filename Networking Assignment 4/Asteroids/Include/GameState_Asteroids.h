@@ -45,6 +45,14 @@ struct Bullet
 {
 	int player_id;
 	AEVec2 position;
+	AEVec2 velocity;
+	float direction;
+};
+
+struct Moves
+{
+	int player_id;
+	bool shoot = false;
 };
 
 void GameStateAsteroidsLoad(void);

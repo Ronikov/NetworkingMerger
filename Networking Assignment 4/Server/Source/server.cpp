@@ -135,17 +135,39 @@ void GetPosOfAllCLients()
 
 void SendPlayersPosToAllClients()
 {
-	//char recvBuffer[1024]; //TODO move to vec2
-	//std::vector<Vec2> receivedPositions(1);
 	CMDID receive_id;
 	std::vector<char> receive_buffer(4096);
+
 	for (const auto& client : clients)
 	{
-		if (client.isConnected)
+		if (!client.isConnected) continue;
+
+		int clientAddrSize = sizeof(client.address);
+		int bytesReceived = recvfrom(udp_listener_socket, reinterpret_cast<char*>(receive_buffer.data()), receive_buffer.size(), 0, (SOCKADDR*)&client.address, &clientAddrSize);
+		if (bytesReceived == SOCKET_ERROR) continue;
+
+		memcpy(&receive_id, receive_buffer.data(), sizeof(receive_id));
+
+		if (receive_id == SEND_PLAYERS)
 		{
-			int clientAddrSize = sizeof(client.address);
-			int bytesReceived = recvfrom(udp_listener_socket, reinterpret_cast<char*>(receive_buffer.data()), receive_buffer.size(), 0, (SOCKADDR*)&client.address, &clientAddrSize);
-			if (bytesReceived != SOCKET_ERROR)
+			Player receivedPlayer;
+			Moves moves{};
+
+			memcpy(&receivedPlayer, receive_buffer.data() + sizeof(receive_id), sizeof(Player));
+			memcpy(&moves, receive_buffer.data() + sizeof(receive_id) + sizeof(Player), sizeof(Moves));
+
+			int playerIndex = client.player_num - 1;
+
+			players[playerIndex] = receivedPlayer;
+
+			size_t bulletOffset = sizeof(receive_id) + sizeof(Player) + sizeof(Moves);
+			size_t bulletSize = bytesReceived - bulletOffset;
+
+			std::vector<Bullet> receivedBullets(bulletSize / sizeof(Bullet));
+			memcpy(receivedBullets.data(), receive_buffer.data() + bulletOffset, bulletSize);
+			bullets[playerIndex] = receivedBullets;
+
+			if (moves.shoot)
 			{
 				memcpy(&receive_id, receive_buffer.data(), sizeof(receive_id));
 
@@ -193,42 +215,40 @@ void SendPlayersPosToAllClients()
 		}
 	}
 
-
 	CMDID id = SEND_PLAYERS;
-	// Calculate the total size needed for the combined data
-	size_t totalSize = sizeof(id) + MAX_PLAYERS * sizeof(Player); // Size of player data
-	for (const auto& playerBullets : bullets) {
-		totalSize += playerBullets.size() * sizeof(Bullet); // Size of bullet data for each player
+	size_t totalSize = sizeof(id) + MAX_PLAYERS * sizeof(Player);
+
+	for (const auto& playerBullets : bullets)
+	{
+		totalSize += playerBullets.size() * sizeof(Bullet);
 	}
 
-	// Allocate memory for the combined data
 	std::vector<char> combinedData(totalSize);
 	char* bufferPtr = combinedData.data();
 
-	// Copy the command ID for player data into the buffer
 	memcpy(bufferPtr, &id, sizeof(id));
 	bufferPtr += sizeof(id);
 
-	// Copy the player data into the buffer
 	memcpy(bufferPtr, players.data(), MAX_PLAYERS * sizeof(Player));
 	bufferPtr += MAX_PLAYERS * sizeof(Player);
 
-	// Copy the bullet data into the buffer
-	for (const auto& playerBullets : bullets) {
-		for (const auto& bullet : playerBullets) {
+	for (const auto& playerBullets : bullets)
+	{
+		for (const auto& bullet : playerBullets)
+		{
 			memcpy(bufferPtr, &bullet, sizeof(Bullet));
 			bufferPtr += sizeof(Bullet);
 		}
 	}
 
-	// Send the combined byte array to all clients
-	for (const auto& client : clients) {
-		if (client.isConnected) {
+	for (const auto& client : clients)
+	{
+		if (client.isConnected)
+		{
 			sendto(udp_listener_socket, combinedData.data(), totalSize, 0, (SOCKADDR*)&client.address, sizeof(client.address));
 		}
 	}
 }
-
 void SendAsteroidDataToAllClients()
 {
 	if(asteroids_list.empty()) return;
