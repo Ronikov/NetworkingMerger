@@ -1187,7 +1187,6 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 				for (int i{}; i < player_list.size(); ++i)
 				{
 					if (player_list[i] == nullptr) continue;
-					player_list[i]->id = receivedplayer[i].player_id;
 					player_list[i]->velCurr = receivedplayer[i].velocity;
 					player_list[i]->dirCurr = receivedplayer[i].direction;
 					//newPathData temp;
