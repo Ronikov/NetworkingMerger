@@ -1222,7 +1222,7 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 				{
 					//if (player_list[i] == nullptr) continue;
 					if (i == 0) continue;
-
+					if (player_list[i] == nullptr) continue;
 					player_list[i]->velCurr = receivedplayer[i].velocity;
 					player_list[i]->dirCurr = receivedplayer[i].direction;
 
