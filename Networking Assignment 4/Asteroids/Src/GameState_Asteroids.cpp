@@ -1140,19 +1140,11 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 		player[0].num_bullets = num_bullets;
 		player[0].shoot = AEInputCheckTriggered(AEVK_SPACE) ? 1 : 0;
 
-		std::vector<Bullet> bullets(num_bullets);
-		for (int i{}; i < num_bullets; ++i)
-		{
-			bullets[i].player_id = av_player_num;
-			bullets[i].position = bullet_list[i]->posCurr;
-		}
-
 		CMDID send_id = SEND_PLAYERS;
 		size_t dataSize = sizeof(Player) + (sizeof(Bullet) * num_bullets) + sizeof(send_id);
 		std::vector<char> buffer(dataSize);
 		memcpy(buffer.data(), &send_id, sizeof(send_id));
 		memcpy(buffer.data() + sizeof(send_id), player.data(), sizeof(Player));
-		memcpy(buffer.data() + sizeof(send_id) + sizeof(Player), bullets.data(), sizeof(Bullet) * num_bullets);
 
 		if (sendto(udp_socket, buffer.data(), dataSize, 0, (SOCKADDR*)&broadcastAddr, sizeof(broadcastAddr)) == SOCKET_ERROR)
 		{
@@ -1189,11 +1181,6 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 					if (player_list[i] == nullptr) continue;
 					player_list[i]->velCurr = receivedplayer[i].velocity;
 					player_list[i]->dirCurr = receivedplayer[i].direction;
-					//newPathData temp;
-					//temp.newPosition = player_list[i]->posCurr;
-					//temp.newVelocity = player_list[i]->velCurr;
-					//temp.newDir = player_list[i]->dirCurr;
-					//pathData.push_back(std::make_pair(i,temp));
 
 					if (receivedplayer[i].shoot) {
 						AEVec2 added;
@@ -1210,21 +1197,6 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 						bullet_list.emplace_back(gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &player_list[i]->posCurr, &added, player_list[i]->dirCurr));
 					}
 				}
-				bufferPtr += av_player_max * sizeof(Player);
-				std::vector<Bullet> receivedBullets;
-				while (bufferPtr < receive_buffer.data() + bytesReceived) {
-					Bullet bullet;
-					memcpy(&bullet, bufferPtr, sizeof(Bullet));
-					receivedBullets.push_back(bullet);
-					bufferPtr += sizeof(Bullet);
-				}
-
-				for (int i{}; i < receivedBullets.size(); ++i)
-				{
-					/*std::cout << "Player id: " << receivedBullets[i].player_id << "\nPos: x,"
-						<< receivedBullets[i].position.x << " y, " << receivedBullets[i].position.y << "\n";*/
-				}
-
 				break;
 			}
 
