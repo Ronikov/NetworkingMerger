@@ -92,7 +92,7 @@ namespace network {
             vec2 pos;
             memcpy(&dir, msg, sizeof(float));
             memcpy(&pos, msg + sizeof(float), sizeof(vec2));
-            mGame.sparkCreate(PTCL_EXHAUST, &pos, 2, dir + 0.8f * PI, dir + 1.2f * PI);
+            //mGame.sparkCreate(PTCL_EXHAUST, &pos, 2, dir + 0.8f * PI, dir + 1.2f * PI);
             break;
         }
         case network::net_action::NET_PLAYER_DEATH:
@@ -195,21 +195,21 @@ namespace network {
             uint32_t type = static_cast<uint32_t>(exp.exp_type);
 
             //if a ship exploded in that position
-            if (type == PTCL_EXPLOSION_L)
-                mGame.sparkCreate(PTCL_EXPLOSION_L, &exp.pos, 100, 0.0f, 2.0f * PI);
+            //if (type == PTCL_EXPLOSION_L)
+                //mGame.sparkCreate(PTCL_EXPLOSION_L, &exp.pos, 100, 0.0f, 2.0f * PI);
 
             //else destroy the asteroid with the needed information
-            else if (type == PTCL_EXPLOSION_M)
+            if (type == PTCL_EXPLOSION_M)
             {
                 if(mGame.mAsteroids.find(exp.ast_id) != mGame.mAsteroids.end())
                 {
                     GameObjInst* ast = mGame.mAsteroids[exp.ast_id];
                     mGame.gameObjInstDestroy(ast);
 
-                    if(exp.bullet_type == 0)
-                        mGame.sparkCreate(PTCL_EXPLOSION_M, &exp.pos, (uint32_t)(exp.scale * 10), exp.dir - 0.05f * PI, exp.dir + 0.05f * PI, exp.scale);
-                    else
-                        mGame.sparkCreate(PTCL_EXPLOSION_M, &exp.pos, 20, exp.dir + 0.4f * PI, exp.dir + 0.45f * PI);
+                    //if(exp.bullet_type == 0)
+                        //mGame.sparkCreate(PTCL_EXPLOSION_M, &exp.pos, (uint32_t)(exp.scale * 10), exp.dir - 0.05f * PI, exp.dir + 0.05f * PI, exp.scale);
+                    //else
+                        //mGame.sparkCreate(PTCL_EXPLOSION_M, &exp.pos, 20, exp.dir + 0.4f * PI, exp.dir + 0.45f * PI);
                 }
             }
             break;

@@ -196,8 +196,6 @@ struct Game
     // function to calculate the object's velocity after collison
     void resolveCollision(GameObjInst* pSrc, GameObjInst* pDst, vec2* pNrm);
 
-    // function to create the particles
-    void sparkCreate(uint32_t type, vec2* pPos, uint32_t count, float angleMin, float angleMax, float srcSize = 0.0f, float velScale = 1.0f, vec2* pVelInit = 0);
 
     // function for the missile to find a new target
     GameObjInst* missileAcquireTarget(GameObjInst* pMissile);

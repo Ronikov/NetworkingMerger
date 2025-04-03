@@ -210,7 +210,7 @@ void Game::Update(void)
             memcpy(msg.data()+ sizeof(float), &pos, sizeof(vec2));
             NetMgr.BroadCastMsg(network::net_action::NET_PLAYER_PRTCL_MOVE, false, msg.data(), msg.size());
 
-            sparkCreate(PTCL_EXHAUST, &pos, 2, spShip->dirCurr + 0.8f * PI, spShip->dirCurr + 1.2f * PI);
+            //sparkCreate(PTCL_EXHAUST, &pos, 2, spShip->dirCurr + 0.8f * PI, spShip->dirCurr + 1.2f * PI);
 #endif
         }
         if (game::instance().input_key_pressed(GLFW_KEY_DOWN)) {
@@ -402,7 +402,7 @@ void Game::Update(void)
                     u.y = glm::sin(dir) * radius + pInst->posCurr.y;
 
                     // sparkCreate(PTCL_EXHAUST, &u, 1, dir + 0.8f * PI, dir + 0.9f * PI);
-                    sparkCreate(PTCL_EXHAUST, &u, 1, dir + 0.40f * PI, dir + 0.60f * PI);
+                    //sparkCreate(PTCL_EXHAUST, &u, 1, dir + 0.40f * PI, dir + 0.60f * PI);
                 }
             }
         }
@@ -467,7 +467,7 @@ void Game::Update(void)
                 pInst->velCurr = pInst->velCurr + dir;
                 pInst->velCurr = pInst->velCurr * glm::pow(MISSILE_DAMP, dt);
 
-                sparkCreate(PTCL_EXHAUST, &pInst->posCurr, 1, pInst->dirCurr + 0.8f * PI, pInst->dirCurr + 1.2f * PI);
+                //sparkCreate(PTCL_EXHAUST, &pInst->posCurr, 1, pInst->dirCurr + 0.8f * PI, pInst->dirCurr + 1.2f * PI);
             }
         }
         // check if the object is a particle
@@ -513,7 +513,7 @@ void Game::Update(void)
                     memcpy(msg.data(), &exp, sizeof(network::net_explosion));
                     NetMgr.BroadCastMsg(network::net_action::NET_ASTEROID_DESTROY, true, msg.data(), msg.size());
 
-                    sparkCreate(PTCL_EXPLOSION_M, &pDst->posCurr, (uint32_t)(pDst->scale * 10), pSrc->dirCurr - 0.05f * PI, pSrc->dirCurr + 0.05f * PI, pDst->scale);
+                    //sparkCreate(PTCL_EXPLOSION_M, &pDst->posCurr, (uint32_t)(pDst->scale * 10), pSrc->dirCurr - 0.05f * PI, pSrc->dirCurr + 0.05f * PI, pDst->scale);
                     
                     //so nasty code but necessary
                     mScores[pSrc->m_id]++;
@@ -529,7 +529,7 @@ void Game::Update(void)
                     gameObjInstDestroy(pDst);
                 } 
                 else {
-                    sparkCreate(PTCL_EXPLOSION_S, &pSrc->posCurr, 10, pSrc->dirCurr + 0.9f * PI, pSrc->dirCurr + 1.1f * PI);
+                    //sparkCreate(PTCL_EXPLOSION_S, &pSrc->posCurr, 10, pSrc->dirCurr + 0.9f * PI, pSrc->dirCurr + 1.1f * PI);
 
                     // impart some of the bullet/missile velocity to the asteroid
                     pSrc->velCurr = pSrc->velCurr * 0.01f * (1.0f - pDst->scale / AST_SIZE_MAX);
@@ -585,7 +585,7 @@ void Game::Update(void)
                     NetMgr.BroadCastMsg(network::net_action::NET_ASTEROID_DESTROY, true, msg.data(), msg.size());
 
                     gameObjInstDestroy(pDst);
-                    sparkCreate(PTCL_EXPLOSION_M, &pDst->posCurr, 20, dir + 0.4f * PI, dir + 0.45f * PI);
+                    //sparkCreate(PTCL_EXPLOSION_M, &pDst->posCurr, 20, dir + 0.4f * PI, dir + 0.45f * PI);
 
                     //so nasty code but necessary
                     mScores[pSrc->m_id]++;
@@ -654,7 +654,7 @@ void Game::Update(void)
                 memcpy(msg.data(), &exp, sizeof(network::net_explosion));
                 NetMgr.BroadCastMsg(network::net_action::NET_ASTEROID_DESTROY, true, msg.data(), msg.size());
 
-                sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 100, 0.0f, 2.0f * PI);
+                //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 100, 0.0f, 2.0f * PI);
 
                 // reset the ship position and direction
                 spShip->posCurr = {};
@@ -1049,10 +1049,10 @@ GameObjInst* Game::astCreate(GameObjInst* pSrc, bool is_child)
         float velOffset = (AST_SIZE_MAX - pSrc->scale + 1.0f) * 0.25f;
         float scaleNew  = pSrc->scale * 0.5f;
 
-        sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 0.0f * PI - 0.01f * PI, 0.0f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
-        sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 0.5f * PI - 0.01f * PI, 0.5f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
-        sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 1.0f * PI - 0.01f * PI, 1.0f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
-        sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 1.5f * PI - 0.01f * PI, 1.5f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
+        //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 0.0f * PI - 0.01f * PI, 0.0f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
+        //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 0.5f * PI - 0.01f * PI, 0.5f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
+        //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 1.0f * PI - 0.01f * PI, 1.0f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
+        //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 1.5f * PI - 0.01f * PI, 1.5f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
 
         pInst          = astCreate(0, true);
         if (!pInst) return nullptr;
@@ -1190,82 +1190,82 @@ void Game::resolveCollision(GameObjInst* pSrc, GameObjInst* pDst, vec2* pNrm)
 
 // ---------------------------------------------------------------------------
 
-void Game::sparkCreate(uint32_t type, vec2* pPos, uint32_t count, float angleMin, float angleMax, float srcSize, float velScale, vec2* pVelInit)
-{
-    float velRange, velMin, scaleRange, scaleMin;
-
-    if (type == PTCL_EXHAUST) {
-        velRange   = velScale * 30.0f;
-        velMin     = velScale * 10.0f;
-        scaleRange = 5.0f;
-        scaleMin   = 2.0f;
-
-        for (uint32_t i = 0; i < count; i++) {
-            float t      = frand() * 2.0f - 1.0f;
-            float dir    = angleMin + frand() * (angleMax - angleMin);
-            float velMag = velMin + fabs(t) * velRange;
-            vec2  vel;
-
-            vel = {glm::cos(dir), glm::sin(dir)};
-            vel = vel * velMag;
-
-            if (pVelInit)
-                vel = vel + *pVelInit;
-
-            gameObjInstCreate((fabs(t) < 0.2f) ? (TYPE_PTCL_YELLOW) : (TYPE_PTCL_RED),
-                              t * scaleRange + scaleMin,
-                              pPos,
-                              &vel,
-                              frand() * 2.0f * PI,
-                              false);
-        }
-    } else if ((PTCL_EXPLOSION_S <= type) && (type <= PTCL_EXPLOSION_L)) {
-        if (type == PTCL_EXPLOSION_S) {
-            velRange   = 500.0f;
-            velMin     = 200.0f;
-            scaleRange = 05.0f;
-            scaleMin   = 02.0f;
-        } else if (type == PTCL_EXPLOSION_M) {
-            velRange   = 1000.0f;
-            velMin     = 500.0f;
-            scaleRange = 05.0f;
-            scaleMin   = 05.0f;
-        } else {
-            velRange   = 1500.0f;
-            velMin     = 200.0f;
-            scaleRange = 10.0f;
-            scaleMin   = 05.0f;
-        }
-
-        velRange *= velScale;
-        velMin *= velScale;
-
-        for (uint32_t i = 0; i < count; i++) {
-            float dir    = angleMin + (angleMax - angleMin) * frand();
-            float t      = frand();
-            float velMag = t * velRange + velMin;
-            vec2  vel;
-            vec2  pos;
-
-            pos = {pPos->x + (frand() - 0.5f) * srcSize, pPos->y + (frand() - 0.5f) * srcSize};
-
-            vel = {glm::cos(dir), glm::sin(dir)};
-            vel = vel * velMag;
-
-            if (pVelInit)
-                vel = vel + *pVelInit;
-
-            gameObjInstCreate(
-                (t < 0.25f) ? (TYPE_PTCL_WHITE)
-                            : ((t < 0.50f) ? (TYPE_PTCL_YELLOW) : (TYPE_PTCL_RED)),
-                t * scaleRange + scaleMin,
-                &pos,
-                &vel,
-                frand() * 2.0f * PI,
-                false);
-        }
-    }
-}
+//void Game::sparkCreate(uint32_t type, vec2* pPos, uint32_t count, float angleMin, float angleMax, float srcSize, float velScale, vec2* pVelInit)
+//{
+//    float velRange, velMin, scaleRange, scaleMin;
+//
+//    if (type == PTCL_EXHAUST) {
+//        velRange   = velScale * 30.0f;
+//        velMin     = velScale * 10.0f;
+//        scaleRange = 5.0f;
+//        scaleMin   = 2.0f;
+//
+//        for (uint32_t i = 0; i < count; i++) {
+//            float t      = frand() * 2.0f - 1.0f;
+//            float dir    = angleMin + frand() * (angleMax - angleMin);
+//            float velMag = velMin + fabs(t) * velRange;
+//            vec2  vel;
+//
+//            vel = {glm::cos(dir), glm::sin(dir)};
+//            vel = vel * velMag;
+//
+//            if (pVelInit)
+//                vel = vel + *pVelInit;
+//
+//            gameObjInstCreate((fabs(t) < 0.2f) ? (TYPE_PTCL_YELLOW) : (TYPE_PTCL_RED),
+//                              t * scaleRange + scaleMin,
+//                              pPos,
+//                              &vel,
+//                              frand() * 2.0f * PI,
+//                              false);
+//        }
+//    } else if ((PTCL_EXPLOSION_S <= type) && (type <= PTCL_EXPLOSION_L)) {
+//        if (type == PTCL_EXPLOSION_S) {
+//            velRange   = 500.0f;
+//            velMin     = 200.0f;
+//            scaleRange = 05.0f;
+//            scaleMin   = 02.0f;
+//        } else if (type == PTCL_EXPLOSION_M) {
+//            velRange   = 1000.0f;
+//            velMin     = 500.0f;
+//            scaleRange = 05.0f;
+//            scaleMin   = 05.0f;
+//        } else {
+//            velRange   = 1500.0f;
+//            velMin     = 200.0f;
+//            scaleRange = 10.0f;
+//            scaleMin   = 05.0f;
+//        }
+//
+//        velRange *= velScale;
+//        velMin *= velScale;
+//
+//        for (uint32_t i = 0; i < count; i++) {
+//            float dir    = angleMin + (angleMax - angleMin) * frand();
+//            float t      = frand();
+//            float velMag = t * velRange + velMin;
+//            vec2  vel;
+//            vec2  pos;
+//
+//            pos = {pPos->x + (frand() - 0.5f) * srcSize, pPos->y + (frand() - 0.5f) * srcSize};
+//
+//            vel = {glm::cos(dir), glm::sin(dir)};
+//            vel = vel * velMag;
+//
+//            if (pVelInit)
+//                vel = vel + *pVelInit;
+//
+//            gameObjInstCreate(
+//                (t < 0.25f) ? (TYPE_PTCL_WHITE)
+//                            : ((t < 0.50f) ? (TYPE_PTCL_YELLOW) : (TYPE_PTCL_RED)),
+//                t * scaleRange + scaleMin,
+//                &pos,
+//                &vel,
+//                frand() * 2.0f * PI,
+//                false);
+//        }
+//    }
+//}
 
 // ---------------------------------------------------------------------------
 
