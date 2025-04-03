@@ -15,7 +15,6 @@
 #include "../../../engine/math.hpp"
 
 namespace network {
-
     struct net_explosion
     {
         int ast_id = 0;
@@ -72,12 +71,9 @@ namespace network {
         NET_PLAYER_DEATH,
         NET_SCORE_UPDATE,
         NET_PLAYER_SHOT,
-        NET_PLAYER_BOMB,
-        NET_PLAYER_MISSILE,
         NET_ASTEROID_UPDATE,
         NET_ASTEROID_NEW,
         NET_ASTEROID_DESTROY,
-        NET_PLAYER_PRTCL_MOVE,
         NET_PLAYER_DISCONECTS,
         NET_GAME_OVER,
         NET_GAME_WON

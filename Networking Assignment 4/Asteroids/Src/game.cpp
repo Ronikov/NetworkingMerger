@@ -14,10 +14,6 @@ namespace {
 
 }
 
-/**
- * @brief 
- * 
- */
 void game::create(bool mbserver)
 {
     // Window
@@ -37,10 +33,6 @@ void game::create(bool mbserver)
     set_state_ingame(mbserver);
 }
 
-/**
- * @brief 
- * 
- */
 bool game::update()
 {
     TimeMgr.StartFrame();
@@ -71,10 +63,6 @@ bool game::update()
     return should_continue_window && should_continue_net && !game_end;
 }
 
-/**
- * @brief 
- * 
- */
 void game::set_state_ingame(bool mbserver)
 {
     std::string serverIp, clientIP;

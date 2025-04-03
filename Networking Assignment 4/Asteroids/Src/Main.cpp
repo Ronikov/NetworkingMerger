@@ -17,6 +17,7 @@ int main()
 
     game::instance().create(server);
     bool exit = false;
+
     do {
         exit = !game::instance().update();
     } while (!exit);

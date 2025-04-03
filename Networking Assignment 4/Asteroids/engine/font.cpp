@@ -12,21 +12,11 @@
 #include <string>
 
 namespace engine {
-
-    /**
-     * @brief Destroy the font::font object
-     * 
-     */
     font::~font()
     {
         destroy();
     }
 
-    /**
-     * @brief 
-     * 
-     * @param filename 
-     */
     void font::create(char const* filename)
     {
         assert(!m_texture);
@@ -80,10 +70,6 @@ namespace engine {
         m_font_shader = shader_font_create();
     }
 
-    /**
-     * @brief 
-     * 
-     */
     void font::destroy()
     {
         delete m_texture;
@@ -94,14 +80,6 @@ namespace engine {
         m_font_shader = nullptr;
     }
 
-    /**
-     * @brief 
-     * 
-     * @param text 
-     * @param x 
-     * @param y 
-     * @param size 
-     */
     void font::render(char const* text, int x, int y, int size, mat4 const& vp, vec4 color)
     {
         // The glyph quad
@@ -191,11 +169,6 @@ namespace engine {
         glDisable(GL_BLEND);
     }
 
-    /**
-     * @brief 
-     * 
-     * @param is 
-     */
     void font::parse_page(std::istream& is)
     {
         std::string token;
@@ -220,11 +193,6 @@ namespace engine {
         }
     }
 
-    /**
-     * @brief 
-     * 
-     * @param is 
-     */
     font::char_info font::parse_char(std::istream& is)
     {
         char_info info{};

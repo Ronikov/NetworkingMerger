@@ -160,41 +160,10 @@ void Game::Update(void)
         sGameStateChangeCtr -= dt;
 
         if (sGameStateChangeCtr < 0.0) {
-            // gAEGameStateNext = GS_RESULT;
             // TODO: Change to RESULT GAME STATE
         }
     } else {
         if (game::instance().input_key_pressed(GLFW_KEY_UP)) {
-#if 0
-			vec2 acc, u, dir;
-
-			// calculate the current direction vector
-			AEVector2Set	(&dir, glm::cos(spShip->dirCurr), glm::sin(spShip->dirCurr));
-
-			// calculate the dampening vector
-			AEVec2Scale(&u, &spShip->velCurr, -AEVec2Length(&spShip->velCurr) * 0.01f);//pow(SHIP_DAMP_FORWARD, dt));
-
-			// calculate the acceleration vector and add the dampening vector to it
-			//AEVec2Scale	(&acc, &dir, 0.5f * SHIP_ACCEL_FORWARD * dt * dt);
-			AEVec2Scale	(&acc, &dir, SHIP_ACCEL_FORWARD);
-			AEVec2Add	(&acc, &acc, &u);
-
-			// add the velocity to the position
-			//AEVec2Scale	(&u,               &spShip->velCurr, dt);
-			//AEVec2Add	(&spShip->posCurr, &spShip->posCurr, &u);
-			// add the acceleration to the position
-			AEVec2Scale	(&u,               &acc,             0.5f * dt * dt);
-			AEVec2Add	(&spShip->posCurr, &spShip->posCurr, &u);
-
-			// add the acceleration to the velocity
-			AEVec2Scale	(&u,               &acc, dt);
-			AEVec2Add	(&spShip->velCurr, &acc, &spShip->velCurr);
-
-			AEVec2Scale	(&u, &dir, -spShip->scale);
-			AEVec2Add	(&u, &u,   &spShip->posCurr);
-
-			sparkCreate(PTCL_EXHAUST, &u, 2, spShip->dirCurr + 0.8f * PI, spShip->dirCurr + 1.2f * PI);
-#else
             vec2 pos, dir;
             dir             = {glm::cos(spShip->dirCurr), glm::sin(spShip->dirCurr)};
             pos             = dir;
@@ -204,14 +173,6 @@ void Game::Update(void)
 
             pos = pos * -spShip->scale;
             pos = pos + spShip->posCurr;
-
-            std::vector<char> msg(sizeof(float) + sizeof(vec2));
-            memcpy(msg.data(), &spShip->dirCurr, sizeof(float));
-            memcpy(msg.data()+ sizeof(float), &pos, sizeof(vec2));
-            NetMgr.BroadCastMsg(network::net_action::NET_PLAYER_PRTCL_MOVE, false, msg.data(), msg.size());
-
-            //sparkCreate(PTCL_EXHAUST, &pos, 2, spShip->dirCurr + 0.8f * PI, spShip->dirCurr + 1.2f * PI);
-#endif
         }
         if (game::instance().input_key_pressed(GLFW_KEY_DOWN)) {
             vec2 dir;
@@ -240,38 +201,6 @@ void Game::Update(void)
 
             gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &spShip->posCurr, &vel, spShip->dirCurr, true, NetMgr.system->m_id);
             NetMgr.BroadCastMsg(network::net_action::NET_PLAYER_SHOT);
-        }
-        // if 'z' pressed
-        if (game::instance().input_key_triggered(GLFW_KEY_Z) && (sSpecialCtr >= BOMB_COST)) {
-            uint32_t i;
-
-            // make sure there is no bomb is active currently
-            for (i = 0; i < GAME_OBJ_INST_NUM_MAX; i++)
-                if ((sGameObjInstList[i].flag & FLAG_ACTIVE) &&
-                    (sGameObjInstList[i].pObject->type == TYPE_BOMB))
-                    break;
-
-            // if no bomb is active currently, create one
-            if (i == GAME_OBJ_INST_NUM_MAX) {
-                sSpecialCtr -= BOMB_COST;
-                gameObjInstCreate(TYPE_BOMB, BOMB_SIZE, &spShip->posCurr, 0, 0, true, NetMgr.system->m_id);
-                NetMgr.BroadCastMsg(network::net_action::NET_PLAYER_BOMB);
-            }
-        }
-        // if 'x' pressed
-        if (game::instance().input_key_pressed(GLFW_KEY_X) && (sSpecialCtr >= MISSILE_COST)) {
-            sSpecialCtr -= MISSILE_COST;
-
-            float dir = spShip->dirCurr;
-            vec2  vel = spShip->velCurr;
-            vec2  pos;
-
-            pos = {glm::cos(spShip->dirCurr), glm::sin(spShip->dirCurr)};
-            pos = pos * spShip->scale * 0.5f;
-            pos = pos + spShip->posCurr;
-
-            gameObjInstCreate(TYPE_MISSILE, 1.0f, &pos, &vel, dir, true, NetMgr.system->m_id);
-            NetMgr.BroadCastMsg(network::net_action::NET_PLAYER_MISSILE);
         }
     }
 
@@ -373,113 +302,6 @@ void Game::Update(void)
                 !in_range(pInst->posCurr.y, gAEWinMinY - AST_SIZE_MAX, gAEWinMaxY + AST_SIZE_MAX))
                 gameObjInstDestroy(pInst);
         }
-        // check if the object is a bomb
-        else if (pInst->pObject->type == TYPE_BOMB) {
-            // adjust the life counter
-            pInst->life -= dt / BOMB_LIFE;
-
-            if (pInst->life < 0.0f) {
-                gameObjInstDestroy(pInst);
-            } else {
-                float radius = 1.0f - pInst->life;
-                vec2  u;
-
-                pInst->dirCurr += 2.0f * PI * dt;
-
-                radius = 1.0f - radius;
-                radius *= radius;
-                radius *= radius;
-                radius *= radius;
-                radius *= radius;
-                radius = (1.0f - radius) * BOMB_RADIUS;
-
-                // generate the particle ring
-                for (uint32_t j = 0; j < 10; j++) {
-                    // float dir = frand() * 2.0f * PI;
-                    float dir = (j / 9.0f) * 2.0f * PI + pInst->life * 1.5f * 2.0f * PI;
-
-                    u.x = glm::cos(dir) * radius + pInst->posCurr.x;
-                    u.y = glm::sin(dir) * radius + pInst->posCurr.y;
-
-                    // sparkCreate(PTCL_EXHAUST, &u, 1, dir + 0.8f * PI, dir + 0.9f * PI);
-                    //sparkCreate(PTCL_EXHAUST, &u, 1, dir + 0.40f * PI, dir + 0.60f * PI);
-                }
-            }
-        }
-        // check if the object is a missile
-        else if (pInst->pObject->type == TYPE_MISSILE) {
-            // adjust the life counter
-            pInst->life -= dt / MISSILE_LIFE;
-
-            if (pInst->life < 0.0f) {
-                gameObjInstDestroy(pInst);
-            } else {
-                vec2 dir;
-
-                if (pInst->pUserData == 0) {
-                    pInst->pUserData = missileAcquireTarget(pInst);
-                } else {
-                    GameObjInst* pTarget = (GameObjInst*)(pInst->pUserData);
-
-                    // if the target is no longer valid, reacquire
-                    if (((pTarget->flag & FLAG_ACTIVE) == 0) ||
-                        (pTarget->pObject->type != TYPE_ASTEROID))
-                        pInst->pUserData = missileAcquireTarget(pInst);
-                }
-
-                if (pInst->pUserData) {
-                    GameObjInst* pTarget = (GameObjInst*)(pInst->pUserData);
-                    vec2         u;
-                    float        uLen;
-
-                    // get the vector from the missile to the target and its length
-                    u    = pTarget->posCurr - pInst->posCurr;
-                    uLen = glm::length(u);
-
-                    // if the missile is 'close' to target, do nothing
-                    if (uLen > 0.1f) {
-                        // normalize the vector from the missile to the target
-                        u = u * 1.0f / uLen;
-
-                        // calculate the missile direction vector
-                        dir = {glm::cos(pInst->dirCurr), glm::sin(pInst->dirCurr)};
-
-                        // calculate the cos and sin of the angle between the target
-                        // vector and the missile direction vector
-                        float cosAngle = glm::dot(dir, u),
-                              sinAngle = cross_product_mag(dir, u), rotAngle;
-
-                        // calculate how much to rotate the missile
-                        if (cosAngle < glm::cos(MISSILE_TURN_SPEED * dt))
-                            rotAngle = MISSILE_TURN_SPEED * dt;
-                        else
-                            rotAngle = glm::cos(glm::clamp(cosAngle, -1.0f, 1.0f));
-
-                        // rotate to the left if sine of the angle is positive and vice
-                        // versa
-                        pInst->dirCurr += (sinAngle > 0.0f) ? rotAngle : -rotAngle;
-                    }
-                }
-
-                // adjust the missile velocity
-                dir            = {glm::cos(pInst->dirCurr), glm::sin(pInst->dirCurr)};
-                dir            = dir * MISSILE_ACCEL * dt;
-                pInst->velCurr = pInst->velCurr + dir;
-                pInst->velCurr = pInst->velCurr * glm::pow(MISSILE_DAMP, dt);
-
-                //sparkCreate(PTCL_EXHAUST, &pInst->posCurr, 1, pInst->dirCurr + 0.8f * PI, pInst->dirCurr + 1.2f * PI);
-            }
-        }
-        // check if the object is a particle
-        else if ((TYPE_PTCL_WHITE <= pInst->pObject->type) &&
-                 (pInst->pObject->type <= TYPE_PTCL_RED)) {
-            pInst->scale *= pow(PTCL_SCALE_DAMP, dt);
-            pInst->dirCurr += 0.1f;
-            pInst->velCurr = pInst->velCurr * glm::pow(PTCL_VEL_DAMP, dt);
-
-            if (pInst->scale < PTCL_SCALE_DAMP)
-                gameObjInstDestroy(pInst);
-        }
     }
 
     // ====================
@@ -493,7 +315,7 @@ void Game::Update(void)
         if ((pSrc->flag & FLAG_ACTIVE) == 0)
             continue;
 
-        if ((pSrc->pObject->type == TYPE_BULLET) || (pSrc->pObject->type == TYPE_MISSILE)) 
+        if (pSrc->pObject->type == TYPE_BULLET) 
         {
             for (uint32_t j = 0; j < GAME_OBJ_INST_NUM_MAX; j++) {
                 GameObjInst* pDst = sGameObjInstList + j;
@@ -506,15 +328,13 @@ void Game::Update(void)
                 if (point_in_aabb(pSrc->posCurr, pDst->posCurr, pDst->scale, pDst->scale) == false)
                     continue;
 
-                if (pDst->scale < AST_SIZE_MIN && NetMgr.Im_server) {
-
-                    network::net_explosion exp{ pDst->m_id, PTCL_EXPLOSION_M, 0, pDst->scale, pSrc->dirCurr,pDst->posCurr };
+                if (NetMgr.Im_server) {
+                    network::net_explosion exp{ pDst->m_id, 0, 0, pDst->scale, pSrc->dirCurr,pDst->posCurr };
                     std::vector<char> msg(sizeof(network::net_explosion));
                     memcpy(msg.data(), &exp, sizeof(network::net_explosion));
                     NetMgr.BroadCastMsg(network::net_action::NET_ASTEROID_DESTROY, true, msg.data(), msg.size());
 
-                    //sparkCreate(PTCL_EXPLOSION_M, &pDst->posCurr, (uint32_t)(pDst->scale * 10), pSrc->dirCurr - 0.05f * PI, pSrc->dirCurr + 0.05f * PI, pDst->scale);
-                    
+
                     //so nasty code but necessary
                     mScores[pSrc->m_id]++;
                     NetMgr.BroadCastMsg(network::net_action::NET_SCORE_UPDATE);
@@ -529,79 +349,15 @@ void Game::Update(void)
                     gameObjInstDestroy(pDst);
                 } 
                 else {
-                    //sparkCreate(PTCL_EXPLOSION_S, &pSrc->posCurr, 10, pSrc->dirCurr + 0.9f * PI, pSrc->dirCurr + 1.1f * PI);
-
-                    // impart some of the bullet/missile velocity to the asteroid
+                    // impart some of the bullet velocity to the asteroid
                     pSrc->velCurr = pSrc->velCurr * 0.01f * (1.0f - pDst->scale / AST_SIZE_MAX);
                     pDst->velCurr = pDst->velCurr + pSrc->velCurr;
-
-                    // split the asteroid to 4
-                    if (NetMgr.Im_server && ((pSrc->pObject->type == TYPE_MISSILE) || ((pDst->life -= 1.0f) < 0.0f)))
-                        astCreate(pDst);
                 }
 
                 // destroy the bullet
                 gameObjInstDestroy(pSrc);
 
                 break;
-            }
-        } 
-        else if (TYPE_BOMB == pSrc->pObject->type) 
-        {
-            float radius = 1.0f - pSrc->life;
-
-            pSrc->dirCurr += 2.0f * PI * dt;
-
-            radius = 1.0f - radius;
-            radius *= radius;
-            radius *= radius;
-            radius *= radius;
-            radius *= radius;
-            radius *= radius;
-            radius = (1.0f - radius) * BOMB_RADIUS;
-
-            // check collision
-            for (uint32_t j = 0; j < GAME_OBJ_INST_NUM_MAX; j++) {
-                GameObjInst* pDst = sGameObjInstList + j;
-
-                if (((pDst->flag & FLAG_ACTIVE) == 0) ||
-                    (pDst->pObject->type != TYPE_ASTEROID))
-                    continue;
-
-                // if (AECalcDistPointToRect(&pSrc->posCurr, &pDst->posCurr,
-                // pDst->scale, pDst->scale) > radius)
-                if (point_in_sphere(pSrc->posCurr, pDst->posCurr, radius) == false)
-                    continue;
-
-                if (!NetMgr.Im_server) continue;
-
-                if (pDst->scale < AST_SIZE_MIN) {
-                    float dir = atan2f(pDst->posCurr.y - pSrc->posCurr.y,
-                                       pDst->posCurr.x - pSrc->posCurr.x);
-
-                    network::net_explosion exp{ pDst->m_id, PTCL_EXPLOSION_M, 1, pDst->scale, dir, pDst->posCurr };
-                    std::vector<char> msg(sizeof(network::net_explosion));
-                    memcpy(msg.data(), &exp, sizeof(network::net_explosion));
-                    NetMgr.BroadCastMsg(network::net_action::NET_ASTEROID_DESTROY, true, msg.data(), msg.size());
-
-                    gameObjInstDestroy(pDst);
-                    //sparkCreate(PTCL_EXPLOSION_M, &pDst->posCurr, 20, dir + 0.4f * PI, dir + 0.45f * PI);
-
-                    //so nasty code but necessary
-                    mScores[pSrc->m_id]++;
-                    NetMgr.BroadCastMsg(network::net_action::NET_SCORE_UPDATE);
-
-                    if ((mScores[pSrc->m_id] % AST_SPECIAL_RATIO) == 0)
-                        sSpecialCtr++;
-                    if ((mScores[pSrc->m_id] % AST_SHIP_RATIO) == 0)
-                        sShipCtr++;
-                    if (mScores[pSrc->m_id] == sAstNum * 5)
-                        sAstNum = (sAstNum < AST_NUM_MAX) ? (sAstNum * 2) : sAstNum;
-                } 
-                else {
-                    // split the asteroid to 4
-                    astCreate(pDst);
-                }
             }
         } 
         else if (pSrc->pObject->type == TYPE_ASTEROID) 
@@ -647,14 +403,6 @@ void Game::Update(void)
                 // check if the object rectangle overlap
                 if (aabb_vs_aabb(pSrc->posCurr, pSrc->scale, pSrc->scale, pDst->posCurr, pDst->scale, pDst->scale) == false)
                     continue;
-
-                // create the big explosion
-                network::net_explosion exp{ pSrc->m_id, PTCL_EXPLOSION_L, 0, pDst->scale, 0, pSrc->posCurr };
-                std::vector<char> msg(sizeof(network::net_explosion));
-                memcpy(msg.data(), &exp, sizeof(network::net_explosion));
-                NetMgr.BroadCastMsg(network::net_action::NET_ASTEROID_DESTROY, true, msg.data(), msg.size());
-
-                //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 100, 0.0f, 2.0f * PI);
 
                 // reset the ship position and direction
                 spShip->posCurr = {};
@@ -858,37 +606,6 @@ void Game::loadGameObjList()
         AE_ASSERT_MESG(pObj->pMesh, "fail to create object!!");
     }
 
-    // ==================
-    // create the bomb
-    // ==================
-
-    pObj       = sGameObjList + sGameObjNum++;
-    pObj->type = TYPE_BOMB;
-
-    {
-        engine::mesh* mesh = new engine::mesh();
-        mesh->add_triangle(engine::gfx_triangle(-1.0f, 1.0f, 0xFFFF8000, 0.0f, 0.0f, -1.0f, -1.0f, 0xFFFF8000, 0.0f, 0.0f, 1.0f, -1.0f, 0xFFFF8000, 0.0f, 0.0f));
-        mesh->add_triangle(engine::gfx_triangle(-1.0f, 1.0f, 0xFFFF8000, 0.0f, 0.0f, 1.0f, -1.0f, 0xFFFF8000, 0.0f, 0.0f, 1.0f, 1.0f, 0xFFFF8000, 0.0f, 0.0f));
-        mesh->create();
-        pObj->pMesh = mesh;
-        AE_ASSERT_MESG(pObj->pMesh, "fail to create object!!");
-    }
-
-    // ==================
-    // create the missile
-    // ==================
-
-    pObj       = sGameObjList + sGameObjNum++;
-    pObj->type = TYPE_MISSILE;
-
-    {
-        engine::mesh* mesh = new engine::mesh();
-        mesh->add_triangle(engine::gfx_triangle(-1.0f, -0.5f, 0xFFFF0000, 0.0f, 0.0f, 1.0f, 0.0f, 0xFFFFFF00, 0.0f, 0.0f, -1.0f, 0.5f, 0xFFFF0000, 0.0f, 0.0f));
-        mesh->create();
-        pObj->pMesh = mesh;
-        AE_ASSERT_MESG(pObj->pMesh, "fail to create object!!");
-    }
-
     // ====================
     // create the asteroid
     // ====================
@@ -903,43 +620,6 @@ void Game::loadGameObjList()
         mesh->create();
         pObj->pMesh = mesh;
         AE_ASSERT_MESG(pObj->pMesh, "fail to create object!!");
-    }
-
-    // ====================
-    // create the star
-    // ====================
-
-    pObj       = sGameObjList + sGameObjNum++;
-    pObj->type = TYPE_STAR;
-
-    {
-        engine::mesh* mesh = new engine::mesh();
-        mesh->add_triangle(engine::gfx_triangle(-0.5f, -0.5f, 0xFF8080FF, 0.0f, 0.0f, 0.5f, 0.5f, 0xFF8080FF, 0.0f, 0.0f, -0.5f, 0.5f, 0xFF8080FF, 0.0f, 0.0f));
-        mesh->add_triangle(engine::gfx_triangle(-0.5f, -0.5f, 0xFF8080FF, 0.0f, 0.0f, 0.5f, -0.5f, 0xFF8080FF, 0.0f, 0.0f, 0.5f, 0.5f, 0xFF8080FF, 0.0f, 0.0f));
-        mesh->create();
-        pObj->pMesh = mesh;
-        assert(pObj->pMesh && "fail to create object!!");
-    }
-
-    // ================
-    // create the ptcl
-    // ================
-
-    for (uint32_t i = 0; i < 3; i++) {
-        uint32_t color =
-            (i == 0) ? (0xFFFFFFFF) : ((i == 1) ? (0xFFFFFF00) : (0xFFFF0000));
-
-        pObj       = sGameObjList + sGameObjNum++;
-        pObj->type = TYPE_PTCL_WHITE + i;
-
-        {
-            engine::mesh* mesh = new engine::mesh();
-            mesh->add_triangle(engine::gfx_triangle(-1.0f * (3 - i), -0.5f * (3 - i), color, 0.0f, 0.0f, 1.0f * (3 - i), 0.5f * (3 - i), color, 0.0f, 0.0f, -1.0f * (3 - i), 0.5f * (3 - i), color, 0.0f, 0.0f));
-            mesh->add_triangle(engine::gfx_triangle(-1.0f * (3 - i), -0.5f * (3 - i), color, 0.0f, 0.0f, 1.0f * (3 - i), -0.5f * (3 - i), color, 0.0f, 0.0f, 1.0f * (3 - i), 0.5f * (3 - i), color, 0.0f, 0.0f));
-            mesh->create();
-            pObj->pMesh = mesh;
-            assert(pObj->pMesh && "fail to create object!!");
-        }
     }
 }
 
@@ -980,19 +660,6 @@ GameObjInst* Game::gameObjInstCreate(uint32_t type, float scale, vec2* pPos, vec
     if (forceCreate) {
         float        scaleMin = FLT_MAX;
         GameObjInst* pDst     = 0;
-
-        // loop through the object instance list to find the smallest particle
-        for (uint32_t i = 0; i < GAME_OBJ_INST_NUM_MAX; i++) {
-            GameObjInst* pInst = sGameObjInstList + i;
-
-            // check if current instance is a red particle
-            if ((TYPE_PTCL_RED <= pInst->pObject->type) &&
-                (pInst->pObject->type <= TYPE_PTCL_WHITE) &&
-                (pInst->scale < scaleMin)) {
-                scaleMin = pInst->scale;
-                pDst     = pInst;
-            }
-        }
 
         if (pDst) {
             pDst->pObject   = sGameObjList + type;
@@ -1048,11 +715,6 @@ GameObjInst* Game::astCreate(GameObjInst* pSrc, bool is_child)
         float posOffset = pSrc->scale * 0.25f;
         float velOffset = (AST_SIZE_MAX - pSrc->scale + 1.0f) * 0.25f;
         float scaleNew  = pSrc->scale * 0.5f;
-
-        //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 0.0f * PI - 0.01f * PI, 0.0f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
-        //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 0.5f * PI - 0.01f * PI, 0.5f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
-        //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 1.0f * PI - 0.01f * PI, 1.0f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
-        //sparkCreate(PTCL_EXPLOSION_L, &pSrc->posCurr, 5, 1.5f * PI - 0.01f * PI, 1.5f * PI + 0.01f * PI, 0.0f, pSrc->scale / AST_SIZE_MAX, &pSrc->velCurr);
 
         pInst          = astCreate(0, true);
         if (!pInst) return nullptr;
@@ -1114,8 +776,6 @@ GameObjInst* Game::astCreate(GameObjInst* pSrc, bool is_child)
 
 void Game::resolveCollision(GameObjInst* pSrc, GameObjInst* pDst, vec2* pNrm)
 {
-#if COLL_RESOLVE_SIMPLE
-
     float ma = pSrc->scale * pSrc->scale, mb = pDst->scale * pDst->scale,
           e = COLL_COEF_OF_RESTITUTION;
 
@@ -1147,161 +807,4 @@ void Game::resolveCollision(GameObjInst* pSrc, GameObjInst* pDst, vec2* pNrm)
             (ma + mb);
         pDst->velCurr.y = pSrc->velCurr.y + e * velRel;
     }
-
-#else
-
-    float ma = pSrc->scale * pSrc->scale, mb = pDst->scale * pDst->scale,
-          e = COLL_COEF_OF_RESTITUTION;
-    vec2 u;
-    vec2 velSrc, velDst;
-    float velRel;
-
-    // calculate the relative velocity of the 1st object againts the 2nd object
-    AEVec2Sub(&u, &pSrc->velCurr, &pDst->velCurr);
-
-    // if the object is separating, do nothing
-    if (AEVec2DotProduct(&u, pNrm) > 0.0f)
-        return;
-
-    // calculate the side vector (pNrm rotated by 90 degree)
-    AEVector2Set(&u, -pNrm->y, pNrm->x);
-
-    // tranform the object velocities to the plane space
-    velSrc.x = AEVec2DotProduct(&pSrc->velCurr, &u);
-    velSrc.y = AEVec2DotProduct(&pSrc->velCurr, pNrm);
-    velDst.x = AEVec2DotProduct(&pDst->velCurr, &u);
-    velDst.y = AEVec2DotProduct(&pDst->velCurr, pNrm);
-
-    // calculate the relative velocity along the y axis
-    velRel = velSrc.y - velDst.y;
-
-    // resolve collision along the Y axis
-    velSrc.y = (ma * velSrc.y + mb * (velDst.y - e * velRel)) / (ma + mb);
-    velDst.y = velSrc.y + e * velRel;
-
-    // tranform back the velocity from the normal space to the world space
-    AEVec2Scale(&pSrc->velCurr, pNrm, velSrc.y);
-    AEVec2ScaleAdd(&pSrc->velCurr, &u, &pSrc->velCurr, velSrc.x);
-    AEVec2Scale(&pDst->velCurr, pNrm, velDst.y);
-    AEVec2ScaleAdd(&pDst->velCurr, &u, &pDst->velCurr, velDst.x);
-
-#endif // COLL_RESOLVE_SIMPLE
 }
-
-// ---------------------------------------------------------------------------
-
-//void Game::sparkCreate(uint32_t type, vec2* pPos, uint32_t count, float angleMin, float angleMax, float srcSize, float velScale, vec2* pVelInit)
-//{
-//    float velRange, velMin, scaleRange, scaleMin;
-//
-//    if (type == PTCL_EXHAUST) {
-//        velRange   = velScale * 30.0f;
-//        velMin     = velScale * 10.0f;
-//        scaleRange = 5.0f;
-//        scaleMin   = 2.0f;
-//
-//        for (uint32_t i = 0; i < count; i++) {
-//            float t      = frand() * 2.0f - 1.0f;
-//            float dir    = angleMin + frand() * (angleMax - angleMin);
-//            float velMag = velMin + fabs(t) * velRange;
-//            vec2  vel;
-//
-//            vel = {glm::cos(dir), glm::sin(dir)};
-//            vel = vel * velMag;
-//
-//            if (pVelInit)
-//                vel = vel + *pVelInit;
-//
-//            gameObjInstCreate((fabs(t) < 0.2f) ? (TYPE_PTCL_YELLOW) : (TYPE_PTCL_RED),
-//                              t * scaleRange + scaleMin,
-//                              pPos,
-//                              &vel,
-//                              frand() * 2.0f * PI,
-//                              false);
-//        }
-//    } else if ((PTCL_EXPLOSION_S <= type) && (type <= PTCL_EXPLOSION_L)) {
-//        if (type == PTCL_EXPLOSION_S) {
-//            velRange   = 500.0f;
-//            velMin     = 200.0f;
-//            scaleRange = 05.0f;
-//            scaleMin   = 02.0f;
-//        } else if (type == PTCL_EXPLOSION_M) {
-//            velRange   = 1000.0f;
-//            velMin     = 500.0f;
-//            scaleRange = 05.0f;
-//            scaleMin   = 05.0f;
-//        } else {
-//            velRange   = 1500.0f;
-//            velMin     = 200.0f;
-//            scaleRange = 10.0f;
-//            scaleMin   = 05.0f;
-//        }
-//
-//        velRange *= velScale;
-//        velMin *= velScale;
-//
-//        for (uint32_t i = 0; i < count; i++) {
-//            float dir    = angleMin + (angleMax - angleMin) * frand();
-//            float t      = frand();
-//            float velMag = t * velRange + velMin;
-//            vec2  vel;
-//            vec2  pos;
-//
-//            pos = {pPos->x + (frand() - 0.5f) * srcSize, pPos->y + (frand() - 0.5f) * srcSize};
-//
-//            vel = {glm::cos(dir), glm::sin(dir)};
-//            vel = vel * velMag;
-//
-//            if (pVelInit)
-//                vel = vel + *pVelInit;
-//
-//            gameObjInstCreate(
-//                (t < 0.25f) ? (TYPE_PTCL_WHITE)
-//                            : ((t < 0.50f) ? (TYPE_PTCL_YELLOW) : (TYPE_PTCL_RED)),
-//                t * scaleRange + scaleMin,
-//                &pos,
-//                &vel,
-//                frand() * 2.0f * PI,
-//                false);
-//        }
-//    }
-//}
-
-// ---------------------------------------------------------------------------
-
-GameObjInst* Game::missileAcquireTarget(GameObjInst* pMissile)
-{
-    vec2         dir, u;
-    float        uLen, angleMin = glm::cos(0.25f * PI), minDist = FLT_MAX;
-    GameObjInst* pTarget = 0;
-
-    dir = {glm::cos(pMissile->dirCurr), glm::sin(pMissile->dirCurr)};
-
-    for (uint32_t i = 0; i < GAME_OBJ_INST_NUM_MAX; i++) {
-        GameObjInst* pInst = sGameObjInstList + i;
-
-        if (((pInst->flag & FLAG_ACTIVE) == 0) ||
-            (pInst->pObject->type != TYPE_ASTEROID))
-            continue;
-
-        u    = pInst->posCurr - pMissile->posCurr;
-        uLen = glm::length(u);
-
-        if (uLen < 1.0f)
-            continue;
-
-        u = u * 1.0f / uLen;
-
-        if (glm::dot(dir, u) < angleMin)
-            continue;
-
-        if (uLen < minDist) {
-            minDist = uLen;
-            pTarget = pInst;
-        }
-    }
-
-    return pTarget;
-}
-
-// ---------------------------------------------------------------------------

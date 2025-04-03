@@ -44,7 +44,6 @@
     <ClInclude Include="engine\texture.hpp" />
     <ClInclude Include="engine\window.hpp" />
     <ClInclude Include="Src\game.hpp" />
-    <ClInclude Include="Src\imgui.hpp" />
     <ClInclude Include="Src\network\client\client.hpp" />
     <ClInclude Include="Src\network\server\server.hpp" />
     <ClInclude Include="Src\network\system\networking.hpp" />

@@ -1,7 +1,53 @@
-﻿  networking.cpp
-C:\Users\brand\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(115,64): warning C4100: 'debug': unreferenced formal parameter
-C:\Users\brand\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(115,53): warning C4100: 'port': unreferenced formal parameter
-C:\Users\brand\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(115,40): warning C4100: 'ip': unreferenced formal parameter
-C:\Users\brand\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.cpp(60,74): warning C4100: 'data_length': unreferenced formal parameter
-C:\Users\brand\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.cpp(63,18): warning C4189: 'flag': local variable is initialized but not referenced
-  Asteroids.vcxproj -> C:\Users\brand\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe
+﻿  game.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Dep\glad\include\glad\glad.h(32,1): message : see previous definition of 'APIENTRY'
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,64): warning C4100: 'debug': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,53): warning C4100: 'port': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,40): warning C4100: 'ip': unreferenced formal parameter
+  client.cpp
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,64): warning C4100: 'debug': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,53): warning C4100: 'port': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,40): warning C4100: 'ip': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\client\client.cpp(48,17): warning C4456: declaration of 'err' hides previous local declaration
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\client\client.cpp(40,13): message : see declaration of 'err'
+  server.cpp
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,64): warning C4100: 'debug': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,53): warning C4100: 'port': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,40): warning C4100: 'ip': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\server\server.cpp(117,14): warning C4189: 'flag': local variable is initialized but not referenced
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\server\server.cpp(170,22): warning C4457: declaration of 'msg' hides function parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\server\server.cpp(148,59): message : see declaration of 'msg'
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\server\server.cpp(171,121): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\server\server.cpp(183,132): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\server\server.cpp(148,59): warning C4100: 'msg': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\server\server.cpp(220,69): warning C4100: 'seq_num': unreferenced formal parameter
+  networking.cpp
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,64): warning C4100: 'debug': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,53): warning C4100: 'port': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,40): warning C4100: 'ip': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.cpp(60,74): warning C4100: 'data_length': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.cpp(63,18): warning C4189: 'flag': local variable is initialized but not referenced
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.cpp(163,22): warning C4189: 'type': local variable is initialized but not referenced
+  state_ingame.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Dep\glad\include\glad\glad.h(32,1): message : see previous definition of 'APIENTRY'
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,64): warning C4100: 'debug': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,53): warning C4100: 'port': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\network\system\networking.hpp(111,40): warning C4100: 'ip': unreferenced formal parameter
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(117,27): warning C4018: '>=': signed/unsigned mismatch
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(125,28): warning C4456: declaration of 'it' hides previous local declaration
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(115,20): message : see declaration of 'it'
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(335,110): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(404,33): warning C4805: '==': unsafe mix of type 'float' and type 'bool' in operation
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(440,22): warning C4101: 'm': unreferenced local variable
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(459,37): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(460,36): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(461,37): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(462,36): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(524,15): warning C4456: declaration of 'window' hides previous local declaration
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(458,10): message : see declaration of 'window'
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(496,10): warning C4189: 'w': local variable is initialized but not referenced
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(661,22): warning C4189: 'scaleMin': local variable is initialized but not referenced
+E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Asteroids\Src\state_ingame.cpp(708,54): warning C4100: 'is_child': unreferenced formal parameter
+  Generating Code...
+  Asteroids.vcxproj -> E:\Documents\Github Desktop\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe

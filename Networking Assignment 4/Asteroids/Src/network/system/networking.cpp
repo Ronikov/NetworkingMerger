@@ -85,16 +85,6 @@ namespace network {
             mGame.mShips[new_player.id]->dirCurr = new_player.dir;
             break;
         }
-        case network::net_action::NET_PLAYER_PRTCL_MOVE:
-        {
-            //create particles on the ship that is moving forward
-            float dir = 0;
-            vec2 pos;
-            memcpy(&dir, msg, sizeof(float));
-            memcpy(&pos, msg + sizeof(float), sizeof(vec2));
-            //mGame.sparkCreate(PTCL_EXHAUST, &pos, 2, dir + 0.8f * PI, dir + 1.2f * PI);
-            break;
-        }
         case network::net_action::NET_PLAYER_DEATH:
         {
             //destroy the ship of the player that dead
@@ -128,28 +118,6 @@ namespace network {
             vec2 vel = { glm::cos(ship->dirCurr), glm::sin(ship->dirCurr) };
             vel = vel * BULLET_SPEED;
             mGame.gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &ship->posCurr, &vel, ship->dirCurr, true, header.id);
-            break;
-        }
-        case network::net_action::NET_PLAYER_BOMB:
-        {
-            //create a bomb
-            auto* ship = mGame.mShips[header.id];
-            mGame.gameObjInstCreate(TYPE_BOMB, BOMB_SIZE, &ship->posCurr, 0, 0, true, header.id);
-            break;
-        }
-        case network::net_action::NET_PLAYER_MISSILE:
-        {
-            //create a missile
-            auto* ship = mGame.mShips[header.id];
-            float dir = ship->dirCurr;
-            vec2  vel = ship->velCurr;
-            vec2  pos;
-
-            pos = { glm::cos(ship->dirCurr), glm::sin(ship->dirCurr) };
-            pos = pos * ship->scale * 0.5f;
-            pos = pos + ship->posCurr;
-
-            mGame.gameObjInstCreate(TYPE_MISSILE, 1.0f, &pos, &vel, dir, true, header.id);
             break;
         }
         case network::net_action::NET_ASTEROID_UPDATE:
@@ -194,23 +162,12 @@ namespace network {
             //get the type of explosion
             uint32_t type = static_cast<uint32_t>(exp.exp_type);
 
-            //if a ship exploded in that position
-            //if (type == PTCL_EXPLOSION_L)
-                //mGame.sparkCreate(PTCL_EXPLOSION_L, &exp.pos, 100, 0.0f, 2.0f * PI);
 
-            //else destroy the asteroid with the needed information
-            if (type == PTCL_EXPLOSION_M)
+            //destroy the asteroid with the needed information
+            if (mGame.mAsteroids.find(exp.ast_id) != mGame.mAsteroids.end())
             {
-                if(mGame.mAsteroids.find(exp.ast_id) != mGame.mAsteroids.end())
-                {
-                    GameObjInst* ast = mGame.mAsteroids[exp.ast_id];
-                    mGame.gameObjInstDestroy(ast);
-
-                    //if(exp.bullet_type == 0)
-                        //mGame.sparkCreate(PTCL_EXPLOSION_M, &exp.pos, (uint32_t)(exp.scale * 10), exp.dir - 0.05f * PI, exp.dir + 0.05f * PI, exp.scale);
-                    //else
-                        //mGame.sparkCreate(PTCL_EXPLOSION_M, &exp.pos, 20, exp.dir + 0.4f * PI, exp.dir + 0.45f * PI);
-                }
+                GameObjInst* ast = mGame.mAsteroids[exp.ast_id];
+                mGame.gameObjInstDestroy(ast);
             }
             break;
         }
@@ -267,11 +224,6 @@ namespace network {
             system->SendMsg(net_flag::NET_SEQ, net_action::NET_PLAYER_UPDATE, system->m_id, ++system->m_seq, expected_answer, msg.data(), sizeof(net_player));
             break;
         }
-        case network::net_action::NET_PLAYER_PRTCL_MOVE:
-        {
-            system->SendMsg(net_flag::NET_SEQ, net_action::NET_PLAYER_PRTCL_MOVE, system->m_id, ++system->m_seq, expected_answer, data, data_length);
-            break;
-        }
         case network::net_action::NET_PLAYER_DEATH:
         {
             system->SendMsg(net_flag::NET_SEQ, net_action::NET_PLAYER_DEATH, system->m_id, ++system->m_seq, expected_answer);
@@ -297,16 +249,6 @@ namespace network {
         case network::net_action::NET_PLAYER_SHOT:
         {
             system->SendMsg(net_flag::NET_SEQ, net_action::NET_PLAYER_SHOT, system->m_id, ++system->m_seq, expected_answer);
-            break;
-        }
-        case network::net_action::NET_PLAYER_BOMB:
-        {
-            system->SendMsg(net_flag::NET_SEQ, net_action::NET_PLAYER_BOMB, system->m_id, ++system->m_seq, expected_answer);
-            break;
-        }
-        case network::net_action::NET_PLAYER_MISSILE:
-        {
-            system->SendMsg(net_flag::NET_SEQ, net_action::NET_PLAYER_MISSILE, system->m_id, ++system->m_seq, expected_answer);
             break;
         }
         case network::net_action::NET_ASTEROID_NEW:

@@ -58,21 +58,9 @@ enum
     // list of game object types
     TYPE_SHIP = 0,
     TYPE_BULLET,
-    TYPE_BOMB,
-    TYPE_MISSILE,
     TYPE_ASTEROID,
-    TYPE_STAR,
-
-    TYPE_PTCL_WHITE,
-    TYPE_PTCL_YELLOW,
-    TYPE_PTCL_RED,
 
     TYPE_NUM,
-
-    PTCL_EXHAUST,
-    PTCL_EXPLOSION_S,
-    PTCL_EXPLOSION_M,
-    PTCL_EXPLOSION_L,
 };
 
 // ---------------------------------------------------------------------------
