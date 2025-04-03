@@ -51,7 +51,8 @@ const float			BULLET_SIZE				= 20.0f;		// bullet size
 const int			ASTEROID_SCORE			= 300;			// score per asteroid destroyed
 const float			ASTEROID_SIZE			= 70.0f;		// asteroid size
 const float			ASTEROID_SPEED			= 100.0f;		// maximum asteroid speed
-const float			ASTEROID_TIME			= 2.0f;			// 2 second spawn time for asteroids
+const float			ASTEROID_TIME			= 0.0f;			// 2 second spawn time for asteroids
+const int			ASTEROID_START			= 0;			// 2 second spawn time for asteroids
 
 
 //FOR LIVES PICKUP
@@ -297,7 +298,7 @@ void GameStateAsteroidsInit(void)
 	AE_ASSERT(spShip);
 
 	// CREATE THE INITIAL ASTEROIDS INSTANCES USING THE "gameObjInstCreate" FUNCTION
-	spawnAsteroid(4);
+	spawnAsteroid(ASTEROID_START);
 
 	// reset the score and the number of ships
 	sScore		= 0;
@@ -321,7 +322,7 @@ void GameStateAsteroidsUpdate(void)
 
 	//spawn asteroids
 	asteroid_timer += g_dt;
-	if (asteroid_timer > ASTEROID_TIME)
+	if (asteroid_timer > ASTEROID_TIME  && ASTEROID_TIME != 0)
 	{
 		asteroid_timer -= ASTEROID_TIME;
 
@@ -1140,6 +1141,7 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 		//std::vector<AEVec2> player_pos(1, spShip->posCurr);
 		std::vector<Player> player(1);
 		player[0].player_id = av_player_num;
+		player[0].shoot = AEInputCheckTriggered(AEVK_SPACE) ? 1 : 0;
 		player[0].position = spShip->posCurr;
 		player[0].velocity = spShip->velCurr;
 		player[0].direction = spShip->dirCurr;
@@ -1148,8 +1150,8 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 		std::vector<Bullet> bullets(num_bullets);
 		for (int i{}; i < num_bullets; ++i)
 		{
-			bullets[i].player_id = av_player_num;
-			bullets[i].position = bullet_list[i]->posCurr;
+			//bullets[i].player_id = av_player_num;
+			//bullets[i].position = bullet_list[i]->posCurr;
 		}
 
 		CMDID send_id = SEND_PLAYERS;
@@ -1201,6 +1203,22 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 					temp.newVelocity = player_list[i]->velCurr;
 					temp.newDir = player_list[i]->dirCurr;
 					pathData.push_back(std::make_pair(i,temp));
+
+					if (receivedplayer[i].shoot) {
+						for (GameObjInst* player : player_list) {
+							if (player == nullptr) continue;
+							// Temp storage for new bullet, spawned  ship pos
+							AEVec2 added;
+
+							// Get the bullet's direction according to the ship's direction
+							AEVec2Set(&added, cosf(player->dirCurr), sinf(player->dirCurr));
+							AEVec2Normalize(&added, &added);
+
+							// Set the velocity
+							AEVec2Scale(&added, &added, BULLET_SPEED);
+							bullet_list.emplace_back(gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &player->posCurr, &added, player->dirCurr));
+						}
+					}
 				}
 				bufferPtr += av_player_max * sizeof(Player);
 				std::vector<Bullet> receivedBullets;

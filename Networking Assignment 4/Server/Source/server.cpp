@@ -163,6 +163,7 @@ void SendPlayersPosToAllClients()
 					players[client.player_num - 1].velocity = receivedPlayers[0].velocity;
 					players[client.player_num - 1].direction = receivedPlayers[0].direction;
 					players[client.player_num - 1].num_bullets = receivedPlayers[0].num_bullets;
+					players[client.player_num - 1].shoot = receivedPlayers[0].shoot;
 
 					bullets[client.player_num - 1].resize(players[client.player_num - 1].num_bullets);
 					for (int i{}; i < players[client.player_num - 1].num_bullets; ++i)
