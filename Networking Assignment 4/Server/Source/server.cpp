@@ -99,7 +99,6 @@ std::vector<ClientInfo> clients;
 uint16_t numConnectedPlayers = 0;
 const int MAX_PLAYERS = 4;
 
-//std::vector<Vec2> players_pos(MAX_PLAYERS);
 std::vector<Player> players(MAX_PLAYERS);
 std::vector<std::vector<Bullet>> bullets(MAX_PLAYERS);
 
@@ -170,8 +169,21 @@ void SendPlayersPosToAllClients()
 					{
 						bullets[client.player_num - 1][i] = receivedBullets[i];
 					}
+					break;
+				}
 
-					//std::cout << "Received pos from client: " << receivedPositions[0].x << ", " << receivedPositions[0].y << '\n';
+				case SEND_ASTEROIDS: {
+					// Calculate how many asteroids are being received
+					size_t asteroidCount = (bytesReceived - sizeof(receive_id)) / sizeof(ASTEROID);
+					std::vector<ASTEROID> receivedAsteroids(asteroidCount);
+					memcpy(receivedAsteroids.data(), receive_buffer.data() + sizeof(receive_id), asteroidCount * sizeof(ASTEROID));
+
+					// Update or replace local asteroid list
+					asteroids_list.clear(); // or update in place if desired
+					for (const auto& asteroid : receivedAsteroids) {
+						asteroids_list.push_back(asteroid);
+					}
+
 					break;
 				}
 				default:
@@ -181,14 +193,6 @@ void SendPlayersPosToAllClients()
 		}
 	}
 
-	//for (int playerNum = 0; playerNum < bullets.size(); ++playerNum) {
-	//	for (int bulletIndex = 0; bulletIndex < bullets[playerNum].size(); ++bulletIndex) {
-	//		Bullet bullet = bullets[playerNum][bulletIndex];
-
-	//		std::cout << "Player ID: " << bullet.player_id << std::endl;
-	//		std::cout << "Position: (" << bullet.position.x << ", " << bullet.position.y << ")" << std::endl;
-	//	}
-	//}
 
 	CMDID id = SEND_PLAYERS;
 	// Calculate the total size needed for the combined data
@@ -255,6 +259,10 @@ void SendAsteroidDataToAllClients()
 	}
 
 	asteroids_list.clear();
+}
+
+void SendBulletDataToAllClients() {
+
 }
 
 void HandleClientConnection(const sockaddr_in& clientAddr)
@@ -425,11 +433,6 @@ int main()
 			{
 				asteroid_timer -= ASTEROID_TIME;
 				spawnAsteroid(1);
-
-				//for(auto asteroid : asteroids_list)
-				//{
-				//	std::cout << asteroid._id << " : " << asteroid._pos.x << ", " << asteroid._pos.y << '\n';
-				//}
 			}
 
 			SendPlayersPosToAllClients();

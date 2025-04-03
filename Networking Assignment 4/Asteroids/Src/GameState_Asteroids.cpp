@@ -51,7 +51,7 @@ const float			BULLET_SIZE				= 20.0f;		// bullet size
 const int			ASTEROID_SCORE			= 300;			// score per asteroid destroyed
 const float			ASTEROID_SIZE			= 70.0f;		// asteroid size
 const float			ASTEROID_SPEED			= 100.0f;		// maximum asteroid speed
-const float			ASTEROID_TIME			= 0.0f;			// 2 second spawn time for asteroids
+const float			ASTEROID_TIME			= 2.0f;			// 2 second spawn time for asteroids
 
 
 //FOR LIVES PICKUP
@@ -105,6 +105,12 @@ struct GameObjInst
 	int					id;
 };
 
+// Asteroid
+struct NetworkAsteroid {
+	AEVec2 position;
+	AEVec2 velocity;
+	float  direction;
+};
 /******************************************************************************/
 /*!
 	Static Variables
@@ -151,12 +157,13 @@ void				spawnLives(unsigned int count);			// function to spawn lives pickups
 
 void				initMultiPlayer(int num_player);
 
-std::vector<GameObjInst*> player_list;
+
 bool newDataReceived = false;
 PathSmoother pathSmootherInstance;
 std::vector<std::pair<int ,newPathData>> pathData;		  // newly received path data for the object
 std::vector<std::pair<int, currPathData>> currData;		  // current path data for the object
 std::vector<std::pair<int, currLerpPathData>> lerpData;   // current lerp path data for the object
+std::vector<GameObjInst*> player_list;
 std::vector<GameObjInst*> asteroids_list;
 std::vector<GameObjInst*> bullet_list;
 
@@ -1204,14 +1211,62 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 					bufferPtr += sizeof(Bullet);
 				}
 
-				for (int i{}; i < receivedBullets.size(); ++i)
-				{
-					/*std::cout << "Player id: " << receivedBullets[i].player_id << "\nPos: x,"
-						<< receivedBullets[i].position.x << " y, " << receivedBullets[i].position.y << "\n";*/
-				}
-
 				break;
 			}
+			case SEND_ASTEROIDS : {
+				if (!asteroids_list.empty())
+				{
+					CMDID asteroid_cmd = SEND_ASTEROIDS;
+					size_t asteroid_count = asteroids_list.size();
+					std::vector<NetworkAsteroid> asteroid_data(asteroid_count);
+
+					for (size_t i = 0; i < asteroid_count; ++i)
+					{
+						if (asteroids_list[i] == nullptr) continue;
+						asteroid_data[i].position = asteroids_list[i]->posCurr;
+						asteroid_data[i].velocity = asteroids_list[i]->velCurr;
+						asteroid_data[i].direction = asteroids_list[i]->dirCurr;
+					}
+
+					size_t asteroid_data_size = sizeof(asteroid_cmd) + sizeof(NetworkAsteroid) * asteroid_count;
+					std::vector<char> asteroid_buffer(asteroid_data_size);
+
+					memcpy(asteroid_buffer.data(), &asteroid_cmd, sizeof(asteroid_cmd));
+					memcpy(asteroid_buffer.data() + sizeof(asteroid_cmd), asteroid_data.data(), sizeof(NetworkAsteroid) * asteroid_count);
+
+					if (sendto(udp_socket, asteroid_buffer.data(), asteroid_data_size, 0, (SOCKADDR*)&broadcastAddr, sizeof(broadcastAddr)) == SOCKET_ERROR)
+					{
+						std::cerr << "sendto ASTEROIDS failed with error: " << WSAGetLastError() << '\n';
+					}
+				}
+			}
+
+			case SEND_BULLETS: {
+				if (!bullet_list.empty())
+				{
+					CMDID bullet_cmd = SEND_BULLETS;
+					size_t bullet_data_size = sizeof(bullet_cmd) + bullet_list.size() * sizeof(Bullet);
+					std::vector<char> bullet_buffer(bullet_data_size);
+
+					memcpy(bullet_buffer.data(), &bullet_cmd, sizeof(bullet_cmd));
+
+					for (size_t i = 0; i < bullet_list.size(); ++i)
+					{
+						Bullet b;
+						b.player_id = av_player_num;
+						b.position = bullet_list[i]->posCurr;
+
+						memcpy(bullet_buffer.data() + sizeof(bullet_cmd) + i * sizeof(Bullet), &b, sizeof(Bullet));
+					}
+
+					if (sendto(udp_socket, bullet_buffer.data(), bullet_data_size, 0, (SOCKADDR*)&broadcastAddr, sizeof(broadcastAddr)) == SOCKET_ERROR)
+					{
+						std::cerr << "sendto BULLETS failed with error: " << WSAGetLastError() << '\n';
+					}
+				}
+				break;
+			}
+
 			default:
 				break;
 			}
