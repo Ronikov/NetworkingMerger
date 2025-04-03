@@ -1188,14 +1188,13 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 				{
 					if (player_list[i] == nullptr) continue;
 					player_list[i]->id = receivedplayer[i].player_id;
-					player_list[i]->posCurr = receivedplayer[i].position;
 					player_list[i]->velCurr = receivedplayer[i].velocity;
 					player_list[i]->dirCurr = receivedplayer[i].direction;
-					newPathData temp;
-					temp.newPosition = player_list[i]->posCurr;
-					temp.newVelocity = player_list[i]->velCurr;
-					temp.newDir = player_list[i]->dirCurr;
-					pathData.push_back(std::make_pair(i,temp));
+					//newPathData temp;
+					//temp.newPosition = player_list[i]->posCurr;
+					//temp.newVelocity = player_list[i]->velCurr;
+					//temp.newDir = player_list[i]->dirCurr;
+					//pathData.push_back(std::make_pair(i,temp));
 
 					if (receivedplayer[i].shoot) {
 						AEVec2 added;
