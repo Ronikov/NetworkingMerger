@@ -630,6 +630,7 @@ void GameStateAsteroidsUpdate(void)
 					{
 						onValueChange = true;
 
+						LeaderboardMap[pInst->id] += 1000;
 						bullet_list.erase(std::remove_if(bullet_list.begin(), bullet_list.end(),
 							[pInst](GameObjInst* bullet) {
 								return bullet == pInst;
@@ -716,7 +717,6 @@ void GameStateAsteroidsUpdate(void)
 			if ((pInst->posCurr.x < AEGfxGetWinMinX()) || (pInst->posCurr.x > AEGfxGetWinMaxX())
 				|| (pInst->posCurr.y < AEGfxGetWinMinY()) || pInst->posCurr.y > AEGfxGetWinMaxY())
 			{
-				LeaderboardMap[pInst->id] += 1000;
 				bullet_list.erase(std::remove_if(bullet_list.begin(), bullet_list.end(),
 					[pInst](GameObjInst* bullet) {
 						return bullet == pInst;
