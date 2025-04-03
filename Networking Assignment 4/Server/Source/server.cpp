@@ -145,32 +145,15 @@ void SendDataToAllClients()
 		{
 			// Extract Player and Bullet data from the buffer
 			std::vector<Player> receivedPlayers(1);
-			size_t bulletDataSize = bytesReceived - sizeof(receive_id) - sizeof(Player);
-			size_t bulletCount = bulletDataSize / sizeof(Bullet);
-			std::vector<Bullet> receivedBullets(bulletCount);
-
 			memcpy(receivedPlayers.data(), receive_buffer.data() + sizeof(receive_id), sizeof(Player));
-			memcpy(receivedBullets.data(), receive_buffer.data() + sizeof(receive_id) + sizeof(Player), bulletDataSize);
 
 			// Update server state for that client
 			int index = client.player_num - 1;
 			players[index] = receivedPlayers[0];
-
-			bullets[index] = receivedBullets;
 			break;
 		}
 		case SEND_BULLETS:
 		{
-			// Extract only Bullet data from the buffer
-			size_t bulletDataSize = bytesReceived - sizeof(receive_id);
-			size_t bulletCount = bulletDataSize / sizeof(Bullet);
-			std::vector<Bullet> receivedBullets(bulletCount);
-
-			memcpy(receivedBullets.data(), receive_buffer.data() + sizeof(receive_id), bulletDataSize);
-
-			// Update bullet list for the client
-			int index = client.player_num - 1;
-			bullets[index] = receivedBullets;
 			break;
 		}
 		default:
@@ -182,9 +165,6 @@ void SendDataToAllClients()
 	CMDID send_id = SEND_PLAYERS;
 	size_t totalSize = sizeof(send_id) + MAX_PLAYERS * sizeof(Player);
 
-	for (const auto& playerBullets : bullets)
-		totalSize += playerBullets.size() * sizeof(Bullet);
-
 	std::vector<char> combinedData(totalSize);
 	char* bufferPtr = combinedData.data();
 
@@ -195,16 +175,6 @@ void SendDataToAllClients()
 	// Pack Player data
 	memcpy(bufferPtr, players.data(), MAX_PLAYERS * sizeof(Player));
 	bufferPtr += MAX_PLAYERS * sizeof(Player);
-
-	// Pack Bullet data
-	for (const auto& playerBullets : bullets)
-	{
-		for (const auto& bullet : playerBullets)
-		{
-			memcpy(bufferPtr, &bullet, sizeof(Bullet));
-			bufferPtr += sizeof(Bullet);
-		}
-	}
 
 	// Broadcast combined data to all connected clients
 	for (const auto& client : clients)
@@ -222,7 +192,6 @@ void SendDataToAllClients()
 		}
 	}
 }
-
 
 int main()
 {
@@ -371,337 +340,6 @@ int main()
 	// Close the listener socket
 	closesocket(udp_listener_socket);
 	WSACleanup();
-}
-
-/*
-* brief: get client's ip and port
-* param: socket
-* param: ip
-* param: port
-*/
-void get_client_IP_and_port(SOCKET socket, char ip[NI_MAXHOST], char port[NI_MAXSERV])
-{
-	sockaddr_storage addr;
-	int addrLen = sizeof(addr);
-
-	// Retrieve the client's address information
-	if (getpeername(socket, reinterpret_cast<sockaddr*>(&addr), &addrLen) == 0)
-	{
-		getnameinfo(reinterpret_cast<sockaddr*>(&addr),
-			addrLen,
-			ip,
-			NI_MAXHOST,
-			port,
-			NI_MAXSERV,
-			NI_NUMERICHOST | NI_NUMERICSERV);
-	}
-	else
-	{
-		std::cerr << "getpeername() failed." << std::endl;
-	}
-}
-
-/*
-*biref: respond to echo request
-*param: socket
-*param: message
-*param: cmd_id
-*/
-int respond_echo(SOCKET socket, std::string const& message, CMDID cmd_id)
-{
-	//find destination port
-	uint32_t ipAddrdest = *reinterpret_cast<const uint32_t*>(&message[sizeof(uint8_t)]);
-	uint16_t portNumdest = ntohs(*reinterpret_cast<const uint16_t*>(&message[sizeof(uint8_t) + sizeof(uint32_t)]));
-
-	// Convert IP address to string
-	char ipBuffer[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &ipAddrdest, ipBuffer, sizeof(ipBuffer));
-	std::string ip(ipBuffer);
-
-	// Convert port number to string
-	std::string port = std::to_string(portNumdest);
-
-	std::string ip_port = ip;
-	ip_port += ":";
-	ip_port += port;
-
-	if (!client_port.contains(ip_port))
-	{
-		std::vector<char> buffer(1);
-
-		uint8_t cmdId = static_cast<uint8_t>(CMDID::ECHO_ERROR);
-		std::memcpy(&buffer[0], &cmdId, sizeof(uint8_t));
-
-		int err = send(socket, buffer.data(), static_cast<int>(buffer.size()), 0);
-		return err;
-	}
-
-	SOCKET dest_socket = client_port.at(ip_port);
-
-	// CMD ID: 1 byte
-	// IP address: 4 bytes, in network byte order
-	// Port number: 2 bytes, in network byte order
-	// Text length: 4 bytes, in network byte order
-	// Text: Variable length, as specified by the text length field
-
-	size_t totalLength = message.length();
-	std::vector<char> buffer(totalLength);
-
-	uint8_t cmdId = static_cast<uint8_t>(cmd_id);
-	std::memcpy(&buffer[0], &cmdId, sizeof(uint8_t));
-
-	// Source IP address and port number
-	sockaddr_in addr{};
-	int addrLen = sizeof(addr);
-	getpeername(socket, reinterpret_cast<sockaddr*>(&addr), &addrLen);
-
-	uint32_t ipAddr = addr.sin_addr.s_addr;
-	uint16_t portNum = ntohs(addr.sin_port);
-
-	// Convert IP address to network byte order
-	uint32_t ipAddrNet = ipAddr;
-	// Copy IP address
-	std::memcpy(&buffer[sizeof(uint8_t)], &ipAddrNet, sizeof(uint32_t));
-
-	// Convert port number to network byte order
-	uint16_t portNumNet = htons(portNum);
-	// Copy port number
-	std::memcpy(&buffer[sizeof(uint8_t) + sizeof(uint32_t)], &portNumNet, sizeof(uint16_t));
-
-	// Calculate the length of the message part (excluding header fields)
-	size_t messagePartLength = message.length() - sizeof(uint16_t) - sizeof(uint32_t) - sizeof(uint8_t);
-
-	// Create a substring containing only the message part
-	std::string messagePart = message.substr(sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint8_t), messagePartLength);
-
-	//extract message from message part and convert to string
-	std::string message_extracted = messagePart.substr(sizeof(uint32_t), messagePartLength - sizeof(uint32_t));
-
-	// Copy the message part into the buffer
-	std::memcpy(&buffer[sizeof(uint8_t) + sizeof(uint32_t) + sizeof(uint16_t)], messagePart.c_str(), messagePart.length());
-
-	uint32_t total_length = static_cast<uint32_t>(message.length());
-	// Send the message
-	int err{};
-
-	while (err < static_cast<int>(total_length))
-	{
-		//err = send(dest_socket, buffer.data(), static_cast<int>(buffer.size()), 0);
-		int remainingBytes = static_cast<int>(total_length) - err;
-		int bytesSent = send(dest_socket, buffer.data() + err, remainingBytes, 0);
-		if (bytesSent <= 0) {
-			std::cerr << "Error sending message." << std::endl;
-			return -1;
-		}
-		err += bytesSent;
-	}
-	return err;
-}
-
-/*
-*brief: respond to list user request
-*param: socket
-*/
-int respond_list_user(SOCKET socket)
-{
-	// Prepare the message
-	std::vector<char> buffer(3);
-
-	uint16_t numUsers = static_cast<uint16_t>(client_port.size());
-	uint16_t numUsersNetOrder = htons(numUsers);
-
-	size_t offset = 3; // Start offset after commandId and numUsers
-
-	size_t bufferSize;
-
-	buffer[0] = static_cast<char>(RSP_LISTUSERS);
-
-	// Number of users (assuming client_port is your map)
-	std::memcpy(&buffer[1], &numUsersNetOrder, sizeof(uint16_t));
-
-	// Resize the buffer to accommodate the maximum possible size
-	bufferSize = buffer.size() + (client_port.size() * (sizeof(uint32_t) + sizeof(uint16_t)));
-	buffer.resize(bufferSize);
-
-	// Append each user's IP address and port number
-	for (const auto& [ip_port, socket] : client_port)
-	{
-		size_t colon_pos = ip_port.find(':');
-		if (colon_pos == std::string::npos)
-		{
-			std::cerr << "Invalid key format in client_port map: " << ip_port << std::endl;
-			continue;
-		}
-
-		std::string ip = ip_port.substr(0, colon_pos);
-		std::string port_str = ip_port.substr(colon_pos + 1);
-		uint16_t port = static_cast<uint16_t>(std::stoi(port_str));
-
-		sockaddr_in addr{};
-		addr.sin_family = AF_INET;
-		inet_pton(AF_INET, ip.c_str(), &addr.sin_addr);
-		uint32_t ipAddr = addr.sin_addr.s_addr;
-		uint16_t portNum = htons(port);
-
-		// Append IP address
-		std::memcpy(&buffer[offset], &ipAddr, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-
-		// Append port number
-		std::memcpy(&buffer[offset], &portNum, sizeof(uint16_t));
-		offset += sizeof(uint16_t);
-	}
-
-	int err = send(socket, buffer.data(), static_cast<int>(buffer.size()), 0);
-	return err;
-}
-
-/*
-*brief: send unknown command
-*param: socket
-*/
-void send_unknown(SOCKET socket)
-{
-	std::vector<char> buffer(1);
-	buffer[0] = static_cast<char>(UNKNOWN);
-	send(socket, buffer.data(), static_cast<int>(buffer.size()), 0);
-}
-
-/*
-*brief: send message
-*param: socket
-*param: commandId
-*param: message
-*/
-int send_message(SOCKET socket, CMDID commandId, const std::string& message)
-{
-	switch (commandId)
-	{
-	case REQ_LISTUSERS:
-		respond_list_user(socket);
-		break;
-	case UNKNOWN:
-		send_unknown(socket);
-		break;
-	default:
-		break;
-	}
-
-	return 0;
-}
-
-/*
-*brief: remove client from map
-*param: socket
-*/
-void remove_client(SOCKET socket)
-{
-	char ipBuffer[NI_MAXHOST];
-	char portBuffer[NI_MAXSERV];
-
-	get_client_IP_and_port(socket, ipBuffer, portBuffer);
-
-	std::string ip_port = ipBuffer;
-	ip_port += ":";
-	ip_port += portBuffer;
-
-	auto it = client_port.find(ip_port);
-	if (it != client_port.end())
-	{
-		client_port.erase(it);
-	}
-}
-
-/*
-*brief: receive message
-*param: socket
-*param: message
-*/
-CMDID receive_message(SOCKET socket, const std::string& message)
-{
-	CMDID cmd_id = static_cast<CMDID>(message[0]);
-	switch (cmd_id)
-	{
-	case REQ_QUIT:
-		remove_client(socket);
-		break;
-	case REQ_LISTUSERS:
-		send_message(socket, REQ_LISTUSERS, {});
-		break;
-	default:
-		send_message(socket, UNKNOWN, {});
-		break;
-	}
-	return cmd_id;
-}
-
-/*
-*brief: handle message
-*param: socket
-*/
-bool handle_message(SOCKET socket)
-{
-	bool stay = true;
-
-	constexpr size_t BUFFER_SIZE = 50;
-	char buffer[BUFFER_SIZE];
-
-	std::string partial_message{};
-	bool start_of_message{ true };
-	uint32_t message_length{};
-
-	while (true)
-	{
-		u_long mode = 1; // 1 for non-blocking mode, 0 for blocking mode
-		ioctlsocket(socket, FIONBIO, &mode);
-		const int bytesReceived = recv(
-			socket,
-			buffer,
-			BUFFER_SIZE - 1,
-			0);
-		if (bytesReceived == SOCKET_ERROR)
-		{
-			size_t errorCode = WSAGetLastError();
-			if (errorCode == WSAEWOULDBLOCK)
-			{
-				using namespace std::chrono_literals;
-				std::this_thread::sleep_for(200ms);
-
-				std::lock_guard<std::mutex> usersLock{ _stdoutMutex };
-				continue;
-			}
-			break;
-		}
-		if (bytesReceived == 0)
-		{
-			break;
-		}
-
-		buffer[bytesReceived] = '\0';
-		std::string text(buffer, bytesReceived);
-
-		receive_message(socket, text);
-	}
-
-	shutdown(socket, SD_BOTH);
-
-	closesocket(socket);
-
-	return stay;
-}
-
-/*
-*brief: disconnect
-*param: listenerSocket
-*/
-void disconnect(SOCKET& listenerSocket)
-{
-	if (listenerSocket != INVALID_SOCKET)
-	{
-		shutdown(listenerSocket, SD_BOTH);
-		closesocket(listenerSocket);
-		listenerSocket = INVALID_SOCKET;
-	}
 }
 
 float RandFloat()
