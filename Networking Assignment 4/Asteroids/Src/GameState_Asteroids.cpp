@@ -823,7 +823,7 @@ void GameStateAsteroidsDraw(void)
 		sprintf_s(strBuffer, "Score: %d", sScore);
 		printf("%s \n", strBuffer);
 
-		sprintf_s(strBuffer, "Ship Left: %d", sShipLives >= 0 ? sShipLives : 0);
+		sprintf_s(strBuffer, " Left: %d", sShipLives >= 0 ? sShipLives : 0);
 		printf("%s \n", strBuffer);
 
 		// display the game over message
@@ -843,12 +843,12 @@ void GameStateAsteroidsDraw(void)
 	textWidth = 0.0f;
 	textHeight = 0.0f;
 
-	sprintf_s(strBuffer, "Score: %d / 8000", sScore);
+	sprintf_s(strBuffer, "Score: %d", sScore);
 	AEGfxGetPrintSize(font, strBuffer, 1.0f, textWidth, textHeight);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-	AEGfxPrint(font, strBuffer, 0.99f - textWidth, 0.99f - textHeight, 1, 255, 255, 255);
+	AEGfxPrint(font, strBuffer, 0.99f - textWidth, -0.99f + textHeight, 1, 255, 255, 255);
 
-	sprintf_s(strBuffer, "Ship Left: %d", sShipLives >= 0 ? sShipLives : 0);
+	sprintf_s(strBuffer, "Life Left: %d", sShipLives >= 0 ? sShipLives : 0);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight, 1, 255, 255, 255);
 

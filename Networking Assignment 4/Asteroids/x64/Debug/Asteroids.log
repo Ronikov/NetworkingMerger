@@ -4,8 +4,6 @@
   1 File(s) copied
   C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\freetype.dll
   1 File(s) copied
-  Collision.cpp
-  GameStateMgr.cpp
   GameState_Asteroids.cpp
 C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(420,143): warning C4389: '==': signed/unsigned mismatch
 C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(443,138): warning C4389: '==': signed/unsigned mismatch
@@ -17,7 +15,4 @@ C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\Gam
 C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1133,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1157,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1175,67): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-  Main.cpp
-  PathSmoother.cpp
-  Generating Code...
   Asteroids.vcxproj -> C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe
