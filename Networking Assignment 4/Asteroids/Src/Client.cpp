@@ -81,13 +81,14 @@ bool ConnectToServer()
         char recvBuffer[BUFFER_SIZE];
         int bytesReceived = recvfrom(broadcast_socket, recvBuffer, sizeof(recvBuffer), 0, (SOCKADDR*)&serverAddr, &serverAddrSize);
 
-        if (bytesReceived == SOCKET_ERROR)
+        while (bytesReceived == SOCKET_ERROR)
         {
             int err = WSAGetLastError();
             if (err == WSAETIMEDOUT)
             {
                 std::cout << "No response yet, retrying...\n";
                 //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                bytesReceived = recvfrom(broadcast_socket, recvBuffer, sizeof(recvBuffer), 0, (SOCKADDR*)&serverAddr, &serverAddrSize);
                 continue;
             }
 
