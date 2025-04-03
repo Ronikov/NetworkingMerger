@@ -23,7 +23,6 @@
 #define AST_TO_SHIP_ACC 0.01f // how much acceleration to apply to steer the asteroid toward the ship
 
 #define SHIP_INITIAL_NUM 3          // initial number of ship
-#define SHIP_SPECIAL_NUM 20         //
 #define SHIP_SIZE 30.0f             // ship size
 #define SHIP_ACCEL_FORWARD 100.0f   // ship forward acceleration (in m/s^2)
 #define SHIP_ACCEL_BACKWARD -100.0f // ship backward acceleration (in m/s^2)
@@ -156,9 +155,6 @@ struct Game
 
     // number of ship available (lives, 0 = game over)
     long sShipCtr;
-
-    // number of special attack
-    long sSpecialCtr;
 
     float sGameStateChangeCtr;
 

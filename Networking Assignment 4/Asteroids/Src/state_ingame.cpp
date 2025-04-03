@@ -85,7 +85,6 @@ void Game::Init(void)
         mScores[i] = 0;
 
     sShipCtr    = SHIP_INITIAL_NUM;
-    sSpecialCtr = SHIP_SPECIAL_NUM;
 
     // reset the delay to switch to the result state after game over
     sGameStateChangeCtr = 2.0f;
@@ -339,8 +338,6 @@ void Game::Update(void)
                     mScores[pSrc->m_id]++;
                     NetMgr.BroadCastMsg(network::net_action::NET_SCORE_UPDATE);
 
-                    if ((mScores[pSrc->m_id] % AST_SPECIAL_RATIO) == 0)
-                        sSpecialCtr++;
                     if ((mScores[pSrc->m_id] % AST_SHIP_RATIO) == 0)
                         sShipCtr++;
                     if (mScores[pSrc->m_id] == sAstNum * 5)
@@ -408,8 +405,6 @@ void Game::Update(void)
                 spShip->posCurr = {};
                 spShip->velCurr = {};
                 spShip->dirCurr = 0.0f;
-
-                sSpecialCtr = SHIP_SPECIAL_NUM;
 
                 //make the player inmortal for 2 seconds 
                 player_inmortal = true;
@@ -502,18 +497,15 @@ void Game::Draw(void)
         for (auto& it : mScores)
         {
             int color_id = it.first < 6 ? it.first : it.first % 6;
-            sprintf_s(strBuffer, ("Score" + std::to_string(it.first) + ": %d").c_str(), it.second);
+            sprintf_s(strBuffer, "Score: %d", it.second);
             game::instance().font_default()->render(strBuffer, 10 + (150 * it.first), h - 10, 24, vp, colors[color_id]);
         }
 
         sprintf_s(strBuffer, "Level: %d", glm::log2<uint32_t>(sAstNum));
-        game::instance().font_default()->render(strBuffer, 10, h - 30,24, vp);
+        game::instance().font_default()->render(strBuffer, 600, h - 30,24, vp);
 
-        sprintf_s(strBuffer, "Ship Left: %d", sShipCtr >= 0 ? sShipCtr : 0);
+        sprintf_s(strBuffer, "Life: %d", sShipCtr >= 0 ? sShipCtr : 0);
         game::instance().font_default()->render(strBuffer, 600, h - 10,  24, vp);
-
-        sprintf_s(strBuffer, "Special:   %d", sSpecialCtr);
-        game::instance().font_default()->render(strBuffer, 600, h - 30, 24, vp);
 
         // display the game over message
         if (sShipCtr < 0)
