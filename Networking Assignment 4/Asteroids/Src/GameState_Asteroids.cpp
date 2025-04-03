@@ -16,6 +16,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <vector>
 #include <thread>
 #include <chrono>
+#include <map>
 
 #include "AtomicVariables.h"
 #include "PathSmoother.h"
