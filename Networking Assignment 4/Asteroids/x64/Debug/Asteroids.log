@@ -4,6 +4,8 @@
   1 File(s) copied
   C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\freetype.dll
   1 File(s) copied
+  Collision.cpp
+  GameStateMgr.cpp
   GameState_Asteroids.cpp
 C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(395,46): warning C4244: '+=': conversion from 'f64' to 'float', possible loss of data
 C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(425,143): warning C4389: '==': signed/unsigned mismatch
@@ -18,4 +20,8 @@ C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroi
 C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1163,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1191,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
 C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1201,86): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  Main.cpp
+  PathSmoother.cpp
+  Generating Code...
+  LINK : C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\\Bin\AsteroidsD.exe not found or not built by the last incremental link; performing full link
   Asteroids.vcxproj -> C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe

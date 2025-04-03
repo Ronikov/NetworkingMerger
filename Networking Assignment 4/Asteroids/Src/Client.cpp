@@ -87,7 +87,7 @@ bool ConnectToServer()
             if (err == WSAETIMEDOUT)
             {
                 std::cout << "No response yet, retrying...\n";
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                //std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 continue;
             }
 
