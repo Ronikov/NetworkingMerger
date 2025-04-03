@@ -18,6 +18,40 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dep\glad\src\glad.c" />
+    <ClCompile Include="..\Dep\PngLoader\lodepng.cpp" />
+    <ClCompile Include="engine\font.cpp" />
+    <ClCompile Include="engine\mesh.cpp" />
+    <ClCompile Include="engine\shader.cpp" />
+    <ClCompile Include="engine\texture.cpp" />
+    <ClCompile Include="engine\window.cpp" />
+    <ClCompile Include="Src\game.cpp" />
+    <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\network\client\client.cpp" />
+    <ClCompile Include="Src\network\server\server.cpp" />
+    <ClCompile Include="Src\network\system\networking.cpp" />
+    <ClCompile Include="Src\network\system\utilsnetwork.cpp" />
+    <ClCompile Include="Src\state_ingame.cpp" />
+    <ClCompile Include="Src\TimeMgr\Time.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="engine\font.hpp" />
+    <ClInclude Include="engine\math.hpp" />
+    <ClInclude Include="engine\mesh.hpp" />
+    <ClInclude Include="engine\opengl.hpp" />
+    <ClInclude Include="engine\shader.hpp" />
+    <ClInclude Include="engine\texture.hpp" />
+    <ClInclude Include="engine\window.hpp" />
+    <ClInclude Include="Src\game.hpp" />
+    <ClInclude Include="Src\imgui.hpp" />
+    <ClInclude Include="Src\network\client\client.hpp" />
+    <ClInclude Include="Src\network\server\server.hpp" />
+    <ClInclude Include="Src\network\system\networking.hpp" />
+    <ClInclude Include="Src\network\system\utilsnetwork.hpp" />
+    <ClInclude Include="Src\state_ingame.h" />
+    <ClInclude Include="Src\TimeMgr\Time.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EC5E8CF5-9A2C-473F-9354-442034368150}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -76,6 +110,7 @@
     <TargetName>$(ProjectName)D</TargetName>
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)\Bin\</OutDir>
+    <LibraryPath>C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Dep\GLFW\lib-vc2022;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -84,6 +119,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\Bin\</OutDir>
+    <LibraryPath>C:\Users\bmzul\Documents\GitHub\NetworkingMerger\Networking Assignment 4\Dep\GLFW\lib-vc2022;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -111,19 +147,19 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\Dep\AlphaEngine_V3.08\Include;Include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dep\glad\include;$(SolutionDir)Dep\GLFW\include;$(SolutionDir)Dep\PngLoader;$(SolutionDir)Dep\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\Dep\AlphaEngine_V3.08\Lib;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Alpha_EngineD.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>glfw3.lib;opengl32.lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;glfw3.lib;opengl32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y "$(SolutionDir)\Dep\AlphaEngine_V3.08\dll\Alpha_EngineD.dll" "$(SolutionDir)\Bin"
-xcopy /y "$(SolutionDir)\Dep\AlphaEngine_V3.08\dll\Alpha_Engine.dll" "$(SolutionDir)\Bin"
-xcopy /y "$(SolutionDir)\Dep\AlphaEngine_V3.08\dll\freetype.dll" "$(SolutionDir)\Bin"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -158,37 +194,19 @@ xcopy /y "$(SolutionDir)\Dep\AlphaEngine_V3.08\dll\freetype.dll" "$(SolutionDir)
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\Dep\AlphaEngine_V3.08\Include;Include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dep\glad\include;$(SolutionDir)Dep\GLFW\include;$(SolutionDir)Dep\PngLoader;$(SolutionDir)Dep\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\Dep\AlphaEngine_V3.08\Lib;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Alpha_Engine.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>glfw3.lib;opengl32.lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;glfw3.lib;opengl32.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="Include\AtomicVariables.h" />
-    <ClInclude Include="Include\Client.h" />
-    <ClInclude Include="Include\Collision.h" />
-    <ClInclude Include="Include\GameStateList.h" />
-    <ClInclude Include="Include\GameStateMgr.h" />
-    <ClInclude Include="Include\GameState_Asteroids.h" />
-    <ClInclude Include="Include\Main.h" />
-    <ClInclude Include="Include\PathSmoother.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Src\AtomicVariables.cpp" />
-    <ClCompile Include="Src\Client.cpp" />
-    <ClCompile Include="Src\Collision.cpp" />
-    <ClCompile Include="Src\GameStateMgr.cpp" />
-    <ClCompile Include="Src\GameState_Asteroids.cpp" />
-    <ClCompile Include="Src\Main.cpp" />
-    <ClCompile Include="Src\PathSmoother.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
