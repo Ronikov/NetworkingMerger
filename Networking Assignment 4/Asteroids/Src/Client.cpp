@@ -15,6 +15,8 @@ constexpr int TIMEOUT_MS = 1000;
 constexpr size_t BUFFER_SIZE = 1024;
 
 SOCKET broadcast_socket;
+sockaddr_in serverAddr;
+int serverAddrSize = sizeof(serverAddr);
 
 bool InitClient()
 {
@@ -76,8 +78,6 @@ bool ConnectToServer()
 
         std::cout << "Broadcast sent...\n";
 
-        sockaddr_in serverAddr{};
-        int serverAddrSize = sizeof(serverAddr);
         char recvBuffer[BUFFER_SIZE];
         int bytesReceived = recvfrom(broadcast_socket, recvBuffer, sizeof(recvBuffer), 0, (SOCKADDR*)&serverAddr, &serverAddrSize);
 
@@ -87,7 +87,6 @@ bool ConnectToServer()
             if (err == WSAETIMEDOUT)
             {
                 std::cout << "No response yet, retrying...\n";
-                //std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 bytesReceived = recvfrom(broadcast_socket, recvBuffer, sizeof(recvBuffer), 0, (SOCKADDR*)&serverAddr, &serverAddrSize);
                 continue;
             }
@@ -98,10 +97,18 @@ bool ConnectToServer()
             return false;
         }
 
-        av_connected = true;
         recvBuffer[bytesReceived] = '\0';
-        std::cout << "Received server response: " << recvBuffer << '\n';
-        av_player_num = std::stoi(recvBuffer);
+        int num = std::stoi(recvBuffer);
+
+        if (num >= 1 && num <= 4) {
+            av_connected = true;
+            av_player_num = num;
+            std::cout << "Connected to server as Player " << av_player_num << '\n';
+        }
+        else {
+            std::cout << "Received game start signal\n";
+            av_start = true;
+        }
     }
 
     return true;
@@ -118,8 +125,6 @@ bool WaitForStart()
         return false;
     }
 
-    sockaddr_in serverAddr{};
-    int serverAddrSize = sizeof(serverAddr);
     char recvBuffer[BUFFER_SIZE];
     int bytesReceived = recvfrom(broadcast_socket, recvBuffer, sizeof(recvBuffer), 0, (SOCKADDR*)&serverAddr, &serverAddrSize);
 
@@ -137,9 +142,10 @@ bool WaitForStart()
     }
 
     recvBuffer[bytesReceived] = '\0';
-    std::cout << "Game start signal received: " << recvBuffer << '\n';
     av_player_max = std::stoi(recvBuffer);
 
+    std::cout << "Game start signal received. Max Players: " << av_player_max << '\n';
+    av_start = true;
     return true;
 }
 

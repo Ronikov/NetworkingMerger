@@ -1,9 +1,27 @@
-﻿  C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\Alpha_EngineD.dll
+﻿  C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\Alpha_EngineD.dll
   1 File(s) copied
-  C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\Alpha_Engine.dll
+  C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\Alpha_Engine.dll
   1 File(s) copied
-  C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\freetype.dll
+  C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\\Dep\AlphaEngine_V3.08\dll\freetype.dll
   1 File(s) copied
+  AtomicVariables.cpp
   Client.cpp
-C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\Client.cpp(69,62): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-  Asteroids.vcxproj -> C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\Client.cpp(71,62): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  Collision.cpp
+  GameStateMgr.cpp
+  GameState_Asteroids.cpp
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(395,46): warning C4244: '+=': conversion from 'f64' to 'float', possible loss of data
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(425,143): warning C4389: '==': signed/unsigned mismatch
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(448,138): warning C4389: '==': signed/unsigned mismatch
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(449,10): warning C4456: declaration of 'lerpDataEntry' hides previous local declaration
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(425,9): message : see declaration of 'lerpDataEntry'
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(449,144): warning C4389: '==': signed/unsigned mismatch
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(486,139): warning C4389: '==': signed/unsigned mismatch
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(489,143): warning C4389: '==': signed/unsigned mismatch
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1163,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1191,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1201,86): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+  Main.cpp
+  PathSmoother.cpp
+  Generating Code...
+  Asteroids.vcxproj -> C:\Users\kuekw\source\repos\here\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe
