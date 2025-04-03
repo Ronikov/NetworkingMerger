@@ -14,7 +14,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <iostream>
 #include <vector>
-
+#include <map>
 #include "AtomicVariables.h"
 #include "PathSmoother.h"
 #include "main.h"
@@ -54,7 +54,7 @@ const float			ASTEROID_SPEED			= 100.0f;		// maximum asteroid speed
 const float			ASTEROID_TIME			= 0.0f;			// 2 second spawn time for asteroids
 const int			ASTEROID_INIT_CNT		= 0;			// number of asteroid to init with
 
-
+std::map<int, int>	LeaderboardMap;
 //FOR LIVES PICKUP
 const float			LIVES_SIZE				= 30.0f;		// lives pickup size
 
@@ -286,6 +286,10 @@ void GameStateAsteroidsLoad(void)
 /******************************************************************************/
 void GameStateAsteroidsInit(void)
 {
+	LeaderboardMap[0] = 0;
+	LeaderboardMap[1] = 0;
+	LeaderboardMap[2] = 0;
+	LeaderboardMap[3] = 0;
 	// create the main ship
 	spShip = gameObjInstCreate(TYPE_SHIP, SHIP_SIZE, nullptr, nullptr, 0.0f);
 	AE_ASSERT(spShip);
@@ -709,6 +713,7 @@ void GameStateAsteroidsUpdate(void)
 			if ((pInst->posCurr.x < AEGfxGetWinMinX()) || (pInst->posCurr.x > AEGfxGetWinMaxX())
 				|| (pInst->posCurr.y < AEGfxGetWinMinY()) || pInst->posCurr.y > AEGfxGetWinMaxY())
 			{
+				LeaderboardMap[pInst->id] += 1000;
 				bullet_list.erase(std::remove_if(bullet_list.begin(), bullet_list.end(),
 					[pInst](GameObjInst* bullet) {
 						return bullet == pInst;
@@ -852,16 +857,16 @@ void GameStateAsteroidsDraw(void)
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxPrint(font, strBuffer, -0.99f, -0.99f + textHeight, 1, 255, 255, 255);
 
-	sprintf_s(strBuffer, "Player 1: %d", sShipLives >= 0 ? sShipLives : 0);
+	sprintf_s(strBuffer, "Player 1: %d", LeaderboardMap[0]);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight, 1, 255, 255, 255);
-	sprintf_s(strBuffer, "Player 2: %d", sShipLives >= 0 ? sShipLives : 0);
+	sprintf_s(strBuffer, "Player 2: %d", LeaderboardMap[1]);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight *2, 1, 255, 0, 255);
-	sprintf_s(strBuffer, "Player 3: %d", sShipLives >= 0 ? sShipLives : 0);
+	sprintf_s(strBuffer, "Player 3: %d", LeaderboardMap[2]);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight*3, 1, 255, 255, 0);
-	sprintf_s(strBuffer, "Player 4: %d", sShipLives >= 0 ? sShipLives : 0);
+	sprintf_s(strBuffer, "Player 4: %d", LeaderboardMap[3]);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight*4, 1, 0, 255, 255);
 	// text that is drawn at the end of the game
