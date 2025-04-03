@@ -850,8 +850,20 @@ void GameStateAsteroidsDraw(void)
 
 	sprintf_s(strBuffer, "Life Left: %d", sShipLives >= 0 ? sShipLives : 0);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight, 1, 255, 255, 255);
+	AEGfxPrint(font, strBuffer, -0.99f, -0.99f + textHeight, 1, 255, 255, 255);
 
+	sprintf_s(strBuffer, "Player 1: %d", sShipLives >= 0 ? sShipLives : 0);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight, 1, 255, 255, 255);
+	sprintf_s(strBuffer, "Player 2: %d", sShipLives >= 0 ? sShipLives : 0);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight *2, 1, 255, 0, 255);
+	sprintf_s(strBuffer, "Player 3: %d", sShipLives >= 0 ? sShipLives : 0);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight*3, 1, 255, 255, 0);
+	sprintf_s(strBuffer, "Player 4: %d", sShipLives >= 0 ? sShipLives : 0);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxPrint(font, strBuffer, -0.99f, 0.99f - textHeight*4, 1, 0, 255, 255);
 	// text that is drawn at the end of the game
 	if (sShipLives <= 0)
 	{
@@ -1139,7 +1151,7 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 		player[0].direction = spShip->dirCurr;
 		player[0].num_bullets = num_bullets;
 		player[0].shoot = AEInputCheckTriggered(AEVK_SPACE) ? 1 : 0;
-
+		
 		std::vector<Bullet> bullets(num_bullets);
 		for (int i{}; i < num_bullets; ++i)
 		{

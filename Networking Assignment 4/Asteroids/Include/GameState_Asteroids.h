@@ -40,6 +40,7 @@ struct Player
 	AEVec2 velocity;
 	float direction;
 	int num_bullets;
+	int points;
 };
 
 struct Bullet

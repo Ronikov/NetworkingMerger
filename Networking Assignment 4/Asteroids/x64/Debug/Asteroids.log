@@ -12,7 +12,7 @@ C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\Gam
 C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(444,144): warning C4389: '==': signed/unsigned mismatch
 C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(481,139): warning C4389: '==': signed/unsigned mismatch
 C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(484,143): warning C4389: '==': signed/unsigned mismatch
-C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1133,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1157,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1175,67): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1145,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1169,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Asteroids\Src\GameState_Asteroids.cpp(1187,67): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
   Asteroids.vcxproj -> C:\Users\brand\GitHub\NetworkingMerger\Networking Assignment 4\Bin\AsteroidsD.exe
