@@ -35,6 +35,7 @@ enum CMDID {
 struct Player
 {
 	int player_id;
+	bool shoot;
 	AEVec2 position;
 	AEVec2 velocity;
 	float direction;

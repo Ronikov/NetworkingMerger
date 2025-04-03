@@ -1138,6 +1138,7 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 		player[0].velocity = spShip->velCurr;
 		player[0].direction = spShip->dirCurr;
 		player[0].num_bullets = num_bullets;
+		player[0].shoot = AEInputCheckTriggered(AEVK_SPACE) ? 1 : 0;
 
 		std::vector<Bullet> bullets(num_bullets);
 		for (int i{}; i < num_bullets; ++i)
@@ -1195,6 +1196,21 @@ void AsteroidsDataTransfer(SOCKET udp_socket)
 					temp.newVelocity = player_list[i]->velCurr;
 					temp.newDir = player_list[i]->dirCurr;
 					pathData.push_back(std::make_pair(i,temp));
+
+					if (receivedplayer[i].shoot) {
+						AEVec2 added;
+
+						// Get the bullet's direction according to the ship's direction
+						AEVec2Set(&added, cosf(player_list[i]->dirCurr), sinf(player_list[i]->dirCurr));
+						AEVec2Normalize(&added, &added);
+
+						// Set the velocity
+						AEVec2Scale(&added, &added, BULLET_SPEED);
+
+						// Create an instance
+						//gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &spShip->posCurr, &added, spShip->dirCurr);
+						bullet_list.emplace_back(gameObjInstCreate(TYPE_BULLET, BULLET_SIZE, &player_list[i]->posCurr, &added, player_list[i]->dirCurr));
+					}
 				}
 				bufferPtr += av_player_max * sizeof(Player);
 				std::vector<Bullet> receivedBullets;

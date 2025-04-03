@@ -16,6 +16,7 @@ struct Vec2
 struct Player
 {
 	int player_id;
+	bool shoot;
 	Vec2 position;
 	Vec2 velocity;
 	float direction;
