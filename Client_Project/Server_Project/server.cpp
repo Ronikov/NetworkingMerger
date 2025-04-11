@@ -41,6 +41,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <chrono>
 #include <unordered_map>
 #include <queue>
+#include <mutex>
  
 #pragma region TASKQUEUE.H
 template <typename TItem, typename TAction, typename TOnDisconnect>
