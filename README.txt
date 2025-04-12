@@ -29,6 +29,10 @@ Gabriel:
 	- Implemented message validation and error handling to ensure accurate communication.
 	- Conducted extensive testing and debugging to verify client-server interactions.
 
+after building sln, .exe is located @
+ ..\Client_Project\x64\Debug
+ ..\Client_Project\x64\Release
+
 Instructions
 1. Unzip Assignment3 into folder. 
 2. Create a folder under C: drive
